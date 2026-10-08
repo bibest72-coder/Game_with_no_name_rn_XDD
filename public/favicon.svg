@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Monochrome CLI Terminal icon">
+  <rect width="64" height="64" rx="8" fill="#111111"/>
+  <rect x="10" y="10" width="44" height="44" rx="4" fill="#f5f5f5"/>
+  <path d="M18 22 L28 32 L18 42 M30 42 H42" fill="none" stroke="#111111" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
