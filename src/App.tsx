@@ -396,7 +396,7 @@ export default function App() {
               </p>
 
               <p>
-                用 <code className="font-bold px-1.5 py-0.5 border mx-0.5 inline-block">theme</code> 或 <code className="font-bold px-1.5 py-0.5 border mx-0.5 inline-block">toggle</code> 就能自由切換黑白畫面，雖然說按 <kbd className="font-bold px-1.5 py-0.5 border mx-0.5 inline-block">Ctrl + T</kbd> 更快 (? 
+                用 <code className="font-bold px-1.5 py-0.5 border mx-0.5 inline-block">theme</code> 或 <code className="font-bold px-1.5 py-0.5 border mx-0.5 inline-block">toggle</code> 就能自由切換黑白畫面 
               </p>
 
               <p className="pt-1">
