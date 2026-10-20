@@ -313,7 +313,7 @@ const startRain = () => {
 /** 播放木門開啟聲：可在其他解謎事件重複使用 */
 const playDoorOpen = () => {
   const sound = new Audio(
-    `${import.meta.env.BASE_URL}assets/audio/door-crack.wav`
+    `${import.meta.env.BASE_URL}assets/audio/door-creak.wav`
   );
 
   sound.volume = 0.7;
