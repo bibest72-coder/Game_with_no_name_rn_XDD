@@ -56,11 +56,11 @@ const CHAR_DELAY = 120; // 舒適且沉浸的無聲打字速度
 // 照片路徑對應：使用朋友提供的 SVG 檔案
 const getPhotoSrc = (img: string): string => {
   const photoMap: Record<string, string> = {
-    'image_5a5fbb91.png': `${import.meta.env.BASE_URL}assets/aistudio/42442.jpg`,
-    'image_fd2bab39.png': `${import.meta.env.BASE_URL}assets/aistudio/200w.gif`,
+    'image_5a5fbb91.png': `${import.meta.env.BASE_URL}assets/aistudio/image_5a5fbb91.svg`,
+    'image_fd2bab39.png': `${import.meta.env.BASE_URL}assets/aistudio/image_fd2bab39.svg`,
   };
 
-  const src = photoMap[img] ?? `${import.meta.env.BASE_URL}assets/aistudio/42442.jpg`;
+  const src = photoMap[img] ?? `${import.meta.env.BASE_URL}assets/aistudio/image_5a5fbb91.svg`;
   return src;
 };
 
@@ -395,6 +395,9 @@ const startRain = () => {
         });
         node.parentNode?.replaceChild(fragment, node);
       });
+
+      // 先把每個字元設為隱藏，再顯示內容容器，避免初次進入時整段文字閃現
+      content.style.visibility = 'visible';
 
       // 按照段落逐字顯示；每段結束後停頓，空白字元不發聲
       let elapsed = 0;
@@ -775,7 +778,37 @@ const startRain = () => {
           from { transform: scaleX(0); }
           to { transform: scaleX(1); }
         }
+        @keyframes commandFrameDraw {
+          from { clip-path: inset(0 100% 0 0); }
+          to { clip-path: inset(0 0 0 0); }
+        }
+        /* README 內指令：先顯示完指令文字，再把外框畫出來 */
+        .readme-letter-content code {
+          position: relative;
+          border-color: transparent !important;
+        }
+        .readme-letter-content code::after {
+          content: "";
+          position: absolute;
+          inset: -1px;
+          border: 1px solid currentColor;
+          pointer-events: none;
+          clip-path: inset(0 100% 0 0);
+          animation: commandFrameDraw .45s linear forwards;
+          animation-delay: 1.45s;
+        }
+        .readme-letter-content p:nth-of-type(2) code::after { animation-delay: 3.35s; }
+        .readme-letter-content p:nth-of-type(3) code::after { animation-delay: 4.75s; }
+        .readme-letter-content p:nth-of-type(4) code::after { animation-delay: 8.45s; }
+        .readme-letter-content p:nth-of-type(5) code::after { animation-delay: 10.85s; }
+        .readme-letter-content p:nth-of-type(6) code::after { animation-delay: 14.15s; }
+        .readme-letter-content p:nth-of-type(7) code::after { animation-delay: 15.45s; }
+        .readme-letter-content p:nth-of-type(8) code::after { animation-delay: 16.75s; }
+        .readme-letter-content p:nth-of-type(9) code::after { animation-delay: 18.45s; }
+        .readme-letter-content p:nth-of-type(10) code::after { animation-delay: 20.55s; }
+        .readme-letter-content p:nth-of-type(11) code::after { animation-delay: 22.55s; }
         .readme-paper { border-color: transparent !important; }
+        .readme-letter-content { visibility: hidden; }
         .readme-border-top { position:absolute; top:-2px; left:-2px; right:-2px; height:2px; transform:scaleX(0); transform-origin:left center; animation:readmeTopDraw .65s linear .15s forwards; }
         .readme-border-left { position:absolute; top:-2px; bottom:-2px; left:-2px; width:2px; transform:scaleY(0); transform-origin:top center; animation:readmeSideDraw .85s ease-out .8s forwards; }
         .readme-border-right { position:absolute; top:-2px; bottom:-2px; right:-2px; width:2px; transform:scaleY(0); transform-origin:top center; animation:readmeSideDraw .85s ease-out .8s forwards; }
