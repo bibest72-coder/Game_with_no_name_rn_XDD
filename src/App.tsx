@@ -334,6 +334,8 @@ const playThreeKnocks = () => {
       setCurrentView('easter_egg');
       setHintMessage(null);
     } else if (cmd === '01_gr_1' || cmd === '01-gr-1') {
+      startRain();
+      playThreeKnocks();
       // 劇情文件指令：導向 01_GR_1 劇情頁面
       setCurrentView('doc_01_gr_1');
       setHintMessage(null);
