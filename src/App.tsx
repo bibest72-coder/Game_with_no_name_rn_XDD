@@ -144,6 +144,53 @@ export default function App() {
   const inputRef = useRef<HTMLInputElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const rainAudioRef = useRef<HTMLAudioElement | null>(null);
+  const knockAudioRef = useRef<HTMLAudioElement | null>(null);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+
+useEffect(() => {
+  const base = import.meta.env.BASE_URL;
+
+  const rain = new Audio(`${base}assets/audio/rain.wav`);
+  rain.loop = true;
+  rain.volume = 0.25;
+
+  const knock = new Audio(`${base}assets/audio/knock.mp3`);
+  knock.volume = 0.8;
+
+  rainAudioRef.current = rain;
+  knockAudioRef.current = knock;
+
+  return () => {
+    rain.pause();
+    knock.pause();
+  };
+}, []);
+
+const startRain = () => {
+  if (!soundEnabled) return;
+
+  const rain = rainAudioRef.current;
+  if (rain && rain.paused) {
+    void rain.play().catch(() => {});
+  }
+};
+
+const playThreeKnocks = () => {
+  if (!soundEnabled) return;
+
+  const knock = knockAudioRef.current;
+  if (!knock) return;
+
+  [0, 1000, 2000].forEach((delay) => {
+    setTimeout(() => {
+      if (!soundEnabled) return;
+      knock.currentTime = 0;
+      void knock.play().catch(() => {});
+    }, delay);
+  });
+};
+
   // Skip / fast-forward intro
   const skipIntro = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
