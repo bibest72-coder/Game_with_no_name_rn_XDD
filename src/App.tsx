@@ -60,7 +60,7 @@ const getPhotoSrc = (img: string): string => {
     'image_fd2bab39.png': `${import.meta.env.BASE_URL}assets/aistudio/image_fd2bab39.svg`,
   };
 
-  const src = photoMap[img] ?? `${import.meta.env.BASE_URL}assets/aistudio/200w.gif`;
+  const src = photoMap[img] ?? `${import.meta.env.BASE_URL}assets/aistudio/image_5a5fbb91.svg`;
   return src;
 };
 
@@ -364,15 +364,18 @@ const startRain = () => {
     }
   }, [currentView]);
 
-  // README 真正逐字顯示：保留原本 DOM 結構、字體、樣式與互動，只逐字揭露文字
+  // README 逐字打出；Enter / Space 可直接完成。指令框在自身文字打完後才繪製。
   useEffect(() => {
     typewriterTimersRef.current.forEach(clearTimeout);
     typewriterTimersRef.current = [];
     if (currentView !== 'letter') return;
 
     let cancelled = false;
+    let finished = false;
+    let finishTyping: (() => void) | null = null;
     const beginTimer = setTimeout(() => {
       const content = document.querySelector<HTMLElement>('.readme-letter-content');
+      const title = document.querySelector<HTMLElement>('.readme-title-hidden');
       if (!content || cancelled) return;
 
       const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT);
@@ -381,7 +384,6 @@ const startRain = () => {
         const node = walker.currentNode as Text;
         if (node.nodeValue && node.nodeValue.length > 0) textNodes.push(node);
       }
-
       const characters: HTMLElement[] = [];
       textNodes.forEach((node) => {
         const fragment = document.createDocumentFragment();
@@ -396,30 +398,68 @@ const startRain = () => {
         node.parentNode?.replaceChild(fragment, node);
       });
 
-      // 先把每個字元設為隱藏，再顯示內容容器，避免初次進入時整段文字閃現
+      const commandFrames = Array.from(content.querySelectorAll<HTMLElement>('.readme-command-frame'));
+      commandFrames.forEach((frame) => {
+        frame.classList.remove('readme-frame-draw');
+        if (frame.textContent?.includes('01_GR_1')) frame.classList.add('readme-command-disabled');
+      });
       content.style.visibility = 'visible';
 
-      // 按照段落逐字顯示；每段結束後停頓，空白字元不發聲
+      const revealFrameIfReady = (frame: HTMLElement) => {
+        const chars = Array.from(frame.querySelectorAll<HTMLElement>('[data-readme-character="true"]'));
+        if (chars.every((char) => char.style.visibility === 'visible')) {
+          frame.classList.remove('readme-command-disabled');
+          frame.classList.add('readme-frame-draw');
+        }
+      };
+      const finish = () => {
+        if (finished || cancelled) return;
+        finished = true;
+        characters.forEach((span) => { span.style.visibility = 'visible'; });
+        commandFrames.forEach((frame) => {
+          frame.classList.remove('readme-command-disabled');
+          frame.classList.add('readme-frame-draw');
+        });
+        if (title) {
+          title.classList.remove('readme-title-hidden');
+          title.classList.add('readme-title-visible');
+        }
+      };
+      finishTyping = finish;
+
       let elapsed = 0;
       let lastParagraph: Element | null = null;
       characters.forEach((span) => {
         const paragraph = span.closest('p');
         if (lastParagraph && paragraph && paragraph !== lastParagraph) elapsed += 420;
         lastParagraph = paragraph || lastParagraph;
+        const frame = span.closest<HTMLElement>('.readme-command-frame');
         const delay = elapsed;
         typewriterTimersRef.current.push(setTimeout(() => {
-          if (cancelled) return;
+          if (cancelled || finished) return;
           span.style.visibility = 'visible';
           const char = span.textContent || '';
           if (char.trim()) playTypewriterKey();
+          if (frame) revealFrameIfReady(frame);
         }, delay));
         elapsed += span.textContent === ' ' || span.textContent === '\n' ? 18 : 38;
       });
-    }, 1250); // 等紙張展開完成後才開始打字
+      typewriterTimersRef.current.push(setTimeout(finish, elapsed + 20));
+    }, 1250);
     typewriterTimersRef.current.push(beginTimer);
 
+    const onFastForward = (event: KeyboardEvent) => {
+      if ((event.key === 'Enter' || event.code === 'Space' || event.key === ' ') && !finished) {
+        event.preventDefault();
+        finishTyping?.();
+        typewriterTimersRef.current.forEach(clearTimeout);
+        typewriterTimersRef.current = [];
+      }
+    };
+    window.addEventListener('keydown', onFastForward);
     return () => {
       cancelled = true;
+      window.removeEventListener('keydown', onFastForward);
       typewriterTimersRef.current.forEach(clearTimeout);
       typewriterTimersRef.current = [];
     };
@@ -778,37 +818,15 @@ const startRain = () => {
           from { transform: scaleX(0); }
           to { transform: scaleX(1); }
         }
-        @keyframes commandFrameDraw {
-          from { clip-path: inset(0 100% 0 0); }
-          to { clip-path: inset(0 0 0 0); }
-        }
-        /* README 內指令：先顯示完指令文字，再把外框畫出來 */
-        .readme-letter-content code {
-          position: relative;
-          border-color: transparent !important;
-        }
-        .readme-letter-content code::after {
-          content: "";
-          position: absolute;
-          inset: -1px;
-          border: 1px solid currentColor;
-          pointer-events: none;
-          clip-path: inset(0 100% 0 0);
-          animation: commandFrameDraw .45s linear forwards;
-          animation-delay: 1.45s;
-        }
-        .readme-letter-content p:nth-of-type(2) code::after { animation-delay: 3.35s; }
-        .readme-letter-content p:nth-of-type(3) code::after { animation-delay: 4.75s; }
-        .readme-letter-content p:nth-of-type(4) code::after { animation-delay: 8.45s; }
-        .readme-letter-content p:nth-of-type(5) code::after { animation-delay: 10.85s; }
-        .readme-letter-content p:nth-of-type(6) code::after { animation-delay: 14.15s; }
-        .readme-letter-content p:nth-of-type(7) code::after { animation-delay: 15.45s; }
-        .readme-letter-content p:nth-of-type(8) code::after { animation-delay: 16.75s; }
-        .readme-letter-content p:nth-of-type(9) code::after { animation-delay: 18.45s; }
-        .readme-letter-content p:nth-of-type(10) code::after { animation-delay: 20.55s; }
-        .readme-letter-content p:nth-of-type(11) code::after { animation-delay: 22.55s; }
         .readme-paper { border-color: transparent !important; }
         .readme-letter-content { visibility: hidden; }
+        .readme-command-frame { border-color: transparent !important; position: relative; }
+        .readme-command-frame.readme-frame-draw::before { content: ""; position: absolute; inset: -2px; border: 1px solid currentColor; pointer-events: none; animation: readmeCommandFrameDraw .55s ease-out both; }
+        @keyframes readmeCommandFrameDraw { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+        .readme-command-frame.readme-command-disabled { pointer-events: none !important; cursor: default !important; opacity: .72; }
+        .readme-title-hidden { visibility: hidden; }
+        .readme-title-visible { visibility: visible; animation: readmeTitleAppear .25s steps(6, end) both; }
+        @keyframes readmeTitleAppear { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
         .readme-border-top { position:absolute; top:-2px; left:-2px; right:-2px; height:2px; transform:scaleX(0); transform-origin:left center; animation:readmeTopDraw .65s linear .15s forwards; }
         .readme-border-left { position:absolute; top:-2px; bottom:-2px; left:-2px; width:2px; transform:scaleY(0); transform-origin:top center; animation:readmeSideDraw .85s ease-out .8s forwards; }
         .readme-border-right { position:absolute; top:-2px; bottom:-2px; right:-2px; width:2px; transform:scaleY(0); transform-origin:top center; animation:readmeSideDraw .85s ease-out .8s forwards; }
@@ -961,7 +979,7 @@ const startRain = () => {
 
             {/* Top Postage / Stamp Accent */}
             <div className="flex items-center justify-between border-b pb-4 mb-6">
-              <span className="text-xl sm:text-2xl font-bold tracking-wider">README</span>
+              <span className="readme-title-hidden text-xl sm:text-2xl font-bold tracking-wider">README</span>
             </div>
 
             {/* Letter Content Area (信件內容) */}
@@ -989,7 +1007,7 @@ const startRain = () => {
 
               <p className="py-1">
                 <span className="font-bold">指令：</span>
-                <code className="font-bold px-1.5 py-0.5 border tracking-wider ml-1 inline-block">
+                <code className="readme-command-frame font-bold px-1.5 py-0.5 border tracking-wider ml-1 inline-block">
                   name &lt;目前名字&gt; &lt;新名字&gt;
                 </code>
               </p>
@@ -999,7 +1017,7 @@ const startRain = () => {
               </p>
 
               <p>
-                用 <code className="font-bold px-1.5 py-0.5 border mx-0.5 inline-block">theme</code> 或 <code className="font-bold px-1.5 py-0.5 border mx-0.5 inline-block">toggle</code> 就能自由切換黑白畫面 
+                用 <code className="readme-command-frame font-bold px-1.5 py-0.5 border mx-0.5 inline-block">theme</code> 或 <code className="readme-command-frame font-bold px-1.5 py-0.5 border mx-0.5 inline-block">toggle</code> 就能自由切換黑白畫面 
               </p>
 
               <p>
@@ -1007,11 +1025,11 @@ const startRain = () => {
               </p>
 
               <p className="pt-1">
-                迷路時也別擔心，按一下 <kbd className="font-bold px-1.5 py-0.5 border mx-0.5 inline-block">Esc</kbd> 就能一秒回到輸入欄啦 (๑•̀ㅂ•́)و✧
+                迷路時也別擔心，按一下 <kbd className="readme-command-frame font-bold px-1.5 py-0.5 border mx-0.5 inline-block">Esc</kbd> 就能一秒回到輸入欄啦 (๑•̀ㅂ•́)و✧
               </p>
 
               <p className="pt-2">
-                OK 那麼親愛的 <strong className="font-bold">{userName}</strong> 歡迎來到我們創造的世界、聽一個有趣故事 <code className="font-bold px-1.5 py-0.5 border mx-0.5 inline-block cursor-pointer hover:opacity-80" onClick={() => setCurrentView('doc_01_gr_1')} title="點擊或輸入 01_GR_1 前往">01_GR_1</code>
+                OK 那麼親愛的 <strong className="font-bold">{userName}</strong> 歡迎來到我們創造的世界、聽一個有趣故事 <code className="readme-command-frame readme-command-disabled font-bold px-1.5 py-0.5 border mx-0.5 inline-block cursor-pointer hover:opacity-80" onClick={() => setCurrentView('doc_01_gr_1')} title="點擊或輸入 01_GR_1 前往">01_GR_1</code>
               </p>
             </div>
 
