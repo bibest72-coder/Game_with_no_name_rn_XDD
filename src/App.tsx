@@ -60,7 +60,7 @@ const getPhotoSrc = (img: string): string => {
     'image_fd2bab39.png': `${import.meta.env.BASE_URL}assets/aistudio/image_fd2bab39.svg`,
   };
 
-  const src = photoMap[img] ?? `${import.meta.env.BASE_URL}assets/aistudio/image_5a5fbb91.svg`;
+  const src = photoMap[img] ?? `${import.meta.env.BASE_URL}assets/aistudio/200w.gif`;
   return src;
 };
 
