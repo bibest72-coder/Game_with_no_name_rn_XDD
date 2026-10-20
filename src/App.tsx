@@ -1385,7 +1385,7 @@ const startRain = () => {
                   }`}
                 >
                   <img
-                    src={getPhotoSrc('image_5a5fbb91.png')}
+                    src={getPhotoSrc('image_fd2bab39.png')}
                     alt="苡萱醬的美照"
                     className="max-w-[260px] sm:max-w-[320px] w-full h-auto object-contain block select-none"
                     loading="lazy"
@@ -1423,7 +1423,7 @@ const startRain = () => {
                     }`}
                   >
                     <img
-                      src={getPhotoSrc('image_fd2bab39.png')}
+                      src={getPhotoSrc('image_5a5fbb91.png')}
                       alt="杜杜醬的美照"
                       className="max-w-[200px] sm:max-w-[240px] w-full h-auto object-contain block select-none"
                       loading="lazy"
