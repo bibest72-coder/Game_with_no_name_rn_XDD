@@ -56,11 +56,11 @@ const CHAR_DELAY = 120; // 舒適且沉浸的無聲打字速度
 // 照片路徑對應：使用朋友提供的 SVG 檔案
 const getPhotoSrc = (img: string): string => {
   const photoMap: Record<string, string> = {
-    '42442.jpg': '/assets/aistudio/42442.jpg',
-    '200w.gif': '/assets/aistudio/200w.gif',
+    'image_5a5fbb91.png': `${import.meta.env.BASE_URL}assets/aistudio/image_5a5fbb91.svg`,
+    'image_fd2bab39.png': `${import.meta.env.BASE_URL}assets/aistudio/image_fd2bab39.svg`,
   };
 
-  const src = photoMap[img] ?? '/assets/aistudio/42442.jpg';
+  const src = photoMap[img] ?? `${import.meta.env.BASE_URL}assets/aistudio/image_5a5fbb91.svg`;
   return src;
 };
 
@@ -206,6 +206,32 @@ export default function App() {
 const rainAudioRef = useRef<HTMLAudioElement | null>(null);
 const knockAudioRef = useRef<HTMLAudioElement | null>(null);
 const knockTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+const typewriterAudioContextRef = useRef<AudioContext | null>(null);
+const typewriterTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+// 以瀏覽器合成短促的按鍵聲，不需要額外音效檔
+const playTypewriterKey = () => {
+  try {
+    const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const context = typewriterAudioContextRef.current ?? new AudioContextClass();
+    typewriterAudioContextRef.current = context;
+    if (context.state === 'suspended') void context.resume();
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    oscillator.type = 'square';
+    oscillator.frequency.setValueAtTime(1050 + Math.random() * 250, context.currentTime);
+    gain.gain.setValueAtTime(0.0001, context.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.035, context.currentTime + 0.003);
+    gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.025);
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.start(context.currentTime);
+    oscillator.stop(context.currentTime + 0.028);
+  } catch {
+    // 若瀏覽器不支援音效，仍正常播放打字動畫
+  }
+};
 
 useEffect(() => {
   const base = import.meta.env.BASE_URL;
@@ -336,6 +362,64 @@ const startRain = () => {
       knockTimersRef.current.forEach(clearTimeout);
       knockTimersRef.current = [];
     }
+  }, [currentView]);
+
+  // README 真正逐字顯示：保留原本 DOM 結構、字體、樣式與互動，只逐字揭露文字
+  useEffect(() => {
+    typewriterTimersRef.current.forEach(clearTimeout);
+    typewriterTimersRef.current = [];
+    if (currentView !== 'letter') return;
+
+    let cancelled = false;
+    const beginTimer = setTimeout(() => {
+      const content = document.querySelector<HTMLElement>('.readme-letter-content');
+      if (!content || cancelled) return;
+
+      const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT);
+      const textNodes: Text[] = [];
+      while (walker.nextNode()) {
+        const node = walker.currentNode as Text;
+        if (node.nodeValue && node.nodeValue.length > 0) textNodes.push(node);
+      }
+
+      const characters: HTMLElement[] = [];
+      textNodes.forEach((node) => {
+        const fragment = document.createDocumentFragment();
+        Array.from(node.nodeValue || '').forEach((character) => {
+          const span = document.createElement('span');
+          span.textContent = character;
+          span.style.visibility = 'hidden';
+          span.dataset.readmeCharacter = 'true';
+          fragment.appendChild(span);
+          characters.push(span);
+        });
+        node.parentNode?.replaceChild(fragment, node);
+      });
+
+      // 按照段落逐字顯示；每段結束後停頓，空白字元不發聲
+      let elapsed = 0;
+      let lastParagraph: Element | null = null;
+      characters.forEach((span) => {
+        const paragraph = span.closest('p');
+        if (lastParagraph && paragraph && paragraph !== lastParagraph) elapsed += 420;
+        lastParagraph = paragraph || lastParagraph;
+        const delay = elapsed;
+        typewriterTimersRef.current.push(setTimeout(() => {
+          if (cancelled) return;
+          span.style.visibility = 'visible';
+          const char = span.textContent || '';
+          if (char.trim()) playTypewriterKey();
+        }, delay));
+        elapsed += span.textContent === ' ' || span.textContent === '\n' ? 18 : 38;
+      });
+    }, 1250); // 等紙張展開完成後才開始打字
+    typewriterTimersRef.current.push(beginTimer);
+
+    return () => {
+      cancelled = true;
+      typewriterTimersRef.current.forEach(clearTimeout);
+      typewriterTimersRef.current = [];
+    };
   }, [currentView]);
 
   // 當輸入欄完全浮現後自動聚焦
@@ -677,6 +761,29 @@ const startRain = () => {
   const isDark = theme === 'black';
 
   return (
+    <>
+      <style>{`
+        @keyframes readmeTopDraw {
+          from { transform: scaleX(0); }
+          to { transform: scaleX(1); }
+        }
+        @keyframes readmeSideDraw {
+          from { transform: scaleY(0); }
+          to { transform: scaleY(1); }
+        }
+        @keyframes readmeBottomDraw {
+          from { transform: scaleX(0); }
+          to { transform: scaleX(1); }
+        }
+        .readme-paper { border-color: transparent !important; }
+        .readme-border-top { position:absolute; top:-2px; left:-2px; right:-2px; height:2px; transform:scaleX(0); transform-origin:left center; animation:readmeTopDraw .65s linear .15s forwards; }
+        .readme-border-left { position:absolute; top:-2px; bottom:-2px; left:-2px; width:2px; transform:scaleY(0); transform-origin:top center; animation:readmeSideDraw .85s ease-out .8s forwards; }
+        .readme-border-right { position:absolute; top:-2px; bottom:-2px; right:-2px; width:2px; transform:scaleY(0); transform-origin:top center; animation:readmeSideDraw .85s ease-out .8s forwards; }
+        .readme-border-bottom { position:absolute; bottom:-2px; left:-2px; right:-2px; height:2px; transform:scaleX(0); transform-origin:left center; animation:readmeBottomDraw .55s linear 1.7s forwards; }
+        @media (prefers-reduced-motion: reduce) {
+          .readme-border-top, .readme-border-left, .readme-border-right, .readme-border-bottom { animation:none !important; transform:none !important; }
+        }
+      `}</style>
     <div
       onClick={handleGlobalClick}
       className={`min-h-screen w-full flex flex-col items-center justify-start font-mono select-none theme-transition cursor-text ${
@@ -809,17 +916,23 @@ const startRain = () => {
 
           {/* Letter Envelope Box (白色框框 像是信件這樣) */}
           <div
-            className={`w-full border-2 p-6 sm:p-10 relative theme-transition ${
+            className={`readme-paper w-full border-2 p-6 sm:p-10 relative theme-transition ${
               isDark ? 'border-white bg-black' : 'border-black bg-white'
             }`}
           >
+            {/* 外框動畫：上邊先畫出，再向下延伸，最後畫出底邊；不改動原本內容尺寸與字體 */}
+            <span aria-hidden="true" className="readme-border-top pointer-events-none z-20" style={{ backgroundColor: isDark ? '#ffffff' : '#000000' }} />
+            <span aria-hidden="true" className="readme-border-left pointer-events-none z-20" style={{ backgroundColor: isDark ? '#ffffff' : '#000000' }} />
+            <span aria-hidden="true" className="readme-border-right pointer-events-none z-20" style={{ backgroundColor: isDark ? '#ffffff' : '#000000' }} />
+            <span aria-hidden="true" className="readme-border-bottom pointer-events-none z-20" style={{ backgroundColor: isDark ? '#ffffff' : '#000000' }} />
+
             {/* Top Postage / Stamp Accent */}
             <div className="flex items-center justify-between border-b pb-4 mb-6">
               <span className="text-xl sm:text-2xl font-bold tracking-wider">README</span>
             </div>
 
             {/* Letter Content Area (信件內容) */}
-            <div className="min-h-[220px] sm:min-h-[280px] font-mono leading-relaxed text-xs sm:text-sm space-y-3.5">
+            <div className="readme-letter-content min-h-[220px] sm:min-h-[280px] font-mono leading-relaxed text-xs sm:text-sm space-y-3.5">
               <p className="font-bold text-sm sm:text-base">
                 親愛的玩家，歡迎來到沉浸式推理解謎遊戲 <span className="underline underline-offset-4 decoration-1">《K33P_1t_S1mpl3》</span>！o(////▽////)q
               </p>
@@ -1221,7 +1334,7 @@ const startRain = () => {
                   }`}
                 >
                   <img
-                    src={getPhotoSrc('42442.jpg')}
+                    src={getPhotoSrc('image_5a5fbb91.png')}
                     alt="苡萱醬的美照"
                     className="max-w-[260px] sm:max-w-[320px] w-full h-auto object-contain block select-none"
                     loading="lazy"
@@ -1259,7 +1372,7 @@ const startRain = () => {
                     }`}
                   >
                     <img
-                      src={getPhotoSrc('200w.gif')}
+                      src={getPhotoSrc('image_fd2bab39.png')}
                       alt="杜杜醬的美照"
                       className="max-w-[200px] sm:max-w-[240px] w-full h-auto object-contain block select-none"
                       loading="lazy"
@@ -1442,5 +1555,6 @@ const startRain = () => {
         </div>
       )}
     </div>
+    </>
   );
 }
