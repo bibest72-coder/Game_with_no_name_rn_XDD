@@ -301,6 +301,8 @@ const playThreeKnocks = () => {
 
   // 全域點擊事件
   const handleGlobalClick = () => {
+    startRain();
+    
     if (introPhase !== 'completed') {
       skipIntro();
       return;
@@ -384,6 +386,8 @@ const playThreeKnocks = () => {
       // 劇情文件指令：導向 01_GR_1 劇情頁面
       setPreviousView(currentView === 'list' ? 'list' : 'terminal');
       setCurrentView('doc_01_gr_1');
+      startRain();
+      playThreeKnocks();
       setHintMessage(null);
     } else if (cmd === '01_te_67' || cmd === '01-te-67') {
       // 劇情文件指令：導向 01_TE_67 劇情頁面
