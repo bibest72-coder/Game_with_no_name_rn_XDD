@@ -191,6 +191,55 @@ export default function App() {
   const inputRef = useRef<HTMLInputElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // 音效：雨聲與三下敲門
+const rainAudioRef = useRef<HTMLAudioElement | null>(null);
+const knockAudioRef = useRef<HTMLAudioElement | null>(null);
+const knockTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+useEffect(() => {
+  const base = import.meta.env.BASE_URL;
+
+  const rain = new Audio(`${base}assets/audio/rain.mp3`);
+  rain.loop = true;
+  rain.volume = 0.25;
+  rain.preload = 'auto';
+
+  const knock = new Audio(`${base}assets/audio/knock.wav`);
+  knock.volume = 0.8;
+  knock.preload = 'auto';
+
+  rainAudioRef.current = rain;
+  knockAudioRef.current = knock;
+
+  return () => {
+    rain.pause();
+    knock.pause();
+    knockTimersRef.current.forEach(clearTimeout);
+  };
+}, []);
+
+const startRain = () => {
+  const rain = rainAudioRef.current;
+  if (rain && rain.paused) {
+    void rain.play().catch(() => {
+      // 瀏覽器可能禁止尚未經使用者操作的自動播放
+    });
+  }
+};
+
+const playThreeKnocks = () => {
+  const knock = knockAudioRef.current;
+  if (!knock) return;
+
+  knockTimersRef.current.forEach(clearTimeout);
+  knockTimersRef.current = [0, 1000, 2000].map((delay) =>
+    setTimeout(() => {
+      knock.currentTime = 0;
+      void knock.play().catch(() => {});
+    }, delay)
+  );
+};
+
   // Skip / fast-forward intro
   const skipIntro = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
