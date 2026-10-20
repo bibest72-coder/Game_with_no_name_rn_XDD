@@ -1319,7 +1319,7 @@ const startRain = () => {
                 QQ
               </p>
               <p className="pl-4 sm:pl-6 opacity-90 pt-1">
-                但前兩個字是 以軒醬的食物~ 
+                但前兩個字是 苡萱醬的食物~ 
               </p>
               <p className="pl-4 sm:pl-6 opacity-90">
                 啾咪~ (/▽＼)
