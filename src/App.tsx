@@ -549,25 +549,20 @@ const playDoorSequence = async () => {
     typewriterTimersRef.current.push(beginTimer);
 
     const onFastForward = (event: KeyboardEvent) => {
-      if ((event.key === 'Enter' || event.code === 'Space' || event.key === ' ') && !finished) {
-      
-const onFastForward = (event: KeyboardEvent) => {
-  if (
-    (event.key === 'Enter' ||
-      event.code === 'Space' ||
-      event.key === ' ') &&
-    !finished
-  ) {
-    event.preventDefault();
-    fastForwardRequested = true;
+      if (
+        (event.key === 'Enter' || event.code === 'Space' || event.key === ' ') &&
+        !finished
+      ) {
+        event.preventDefault();
+        fastForwardRequested = true;
 
-    if (finishTyping) {
-      finishTyping();
-      typewriterTimersRef.current.forEach(clearTimeout);
-      typewriterTimersRef.current = [];
-    }
-  }
-};
+        if (finishTyping) {
+          finishTyping();
+          typewriterTimersRef.current.forEach(clearTimeout);
+          typewriterTimersRef.current = [];
+        }
+      }
+    };
 
     window.addEventListener('keydown', onFastForward);
     return () => {
