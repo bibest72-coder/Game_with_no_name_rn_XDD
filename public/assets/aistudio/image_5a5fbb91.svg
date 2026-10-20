@@ -1,0 +1,30 @@
+<svg width="800" height="620" viewBox="0 0 800 620" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">苡萱醬的美照</title>
+  <desc id="desc">一張占位展示照片，替代缺失的圖片資源。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#fdf2f8"/>
+      <stop offset="100%" stop-color="#e0f2fe"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#f5f3ff" stop-opacity="0.75"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="620" fill="url(#bg)"/>
+  <g opacity="0.18">
+    <circle cx="120" cy="120" r="100" fill="#f9a8d4"/>
+    <circle cx="700" cy="80" r="130" fill="#93c5fd"/>
+    <circle cx="660" cy="520" r="140" fill="#ddd6fe"/>
+  </g>
+  <rect x="110" y="72" width="580" height="476" rx="32" fill="url(#card)" stroke="#c4b5fd" stroke-width="4"/>
+  <circle cx="400" cy="240" r="120" fill="#f9d4c7"/>
+  <path d="M298 257c20-74 64-112 131-112 71 0 124 41 138 115-19-16-43-25-70-29-24-4-54-2-95 10-31 9-60 20-104 16z" fill="#f4c7d9"/>
+  <path d="M310 266c25 53 75 83 152 83 71 0 118-28 156-84-19 133-104 196-156 196-72 0-126-62-152-195z" fill="#f5d0b4"/>
+  <path d="M338 206c20-12 35-17 61-18 26-1 49 5 68 18-12-39-34-65-68-65-38 0-62 28-61 65z" fill="#2f2a3a"/>
+  <circle cx="360" cy="245" r="8" fill="#2f2a3a"/>
+  <circle cx="470" cy="245" r="8" fill="#2f2a3a"/>
+  <path d="M382 302c20 15 52 22 75 0" stroke="#d97706" stroke-width="8" stroke-linecap="round" fill="none"/>
+  <path d="M320 372c55 32 109 48 162 48 46 0 94-12 143-36" stroke="#d8b4fe" stroke-width="10" stroke-linecap="round" fill="none" opacity="0.9"/>
+  <text x="400" y="520" text-anchor="middle" font-size="42" font-family="Segoe UI, Noto Sans TC, sans-serif" fill="#6b7280" font-weight="700">苡萱醬的美照</text>
+</svg>
