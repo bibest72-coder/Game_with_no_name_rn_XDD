@@ -201,7 +201,7 @@ useEffect(() => {
 
   const rain = new Audio(`${base}assets/audio/rain.mp3`);
   rain.loop = true;
-  rain.volume = 0.25;
+  rain.volume = 0.6;
   rain.preload = 'auto';
 
   const knock = new Audio(`${base}assets/audio/knock.wav`);
@@ -232,7 +232,7 @@ const playThreeKnocks = () => {
   if (!knock) return;
 
   knockTimersRef.current.forEach(clearTimeout);
-  knockTimersRef.current = [0, 1000, 2000].map((delay) =>
+  knockTimersRef.current = [0, 2000, 4000].map((delay) =>
     setTimeout(() => {
       knock.currentTime = 0;
       void knock.play().catch(() => {});
