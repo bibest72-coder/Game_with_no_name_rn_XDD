@@ -56,11 +56,11 @@ const CHAR_DELAY = 120; // 舒適且沉浸的無聲打字速度
 // 照片路徑對應：使用朋友提供的 SVG 檔案
 const getPhotoSrc = (img: string): string => {
   const photoMap: Record<string, string> = {
-    'image_5a5fbb91.png': `${import.meta.env.BASE_URL}assets/aistudio/image_5a5fbb91.svg`,
-    'image_fd2bab39.png': `${import.meta.env.BASE_URL}assets/aistudio/image_fd2bab39.svg`,
+    'image_5a5fbb91.png': `${import.meta.env.BASE_URL}assets/aistudio/200w.gif`,
+    'image_fd2bab39.png': `${import.meta.env.BASE_URL}assets/aistudio/image_5a5fbb91.svg`,
   };
 
-  const src = photoMap[img] ?? `${import.meta.env.BASE_URL}assets/aistudio/image_5a5fbb91.svg`;
+  const src = photoMap[img] ?? `${import.meta.env.BASE_URL}assets/aistudio/200w.gif`;
   return src;
 };
 
