@@ -228,16 +228,34 @@ const startRain = () => {
 };
 
 const playThreeKnocks = () => {
-  const knock = knockAudioRef.current;
-  if (!knock) return;
+  const playThreeKnocks = () => {
+  const originalKnock = knockAudioRef.current;
 
+  if (!originalKnock) {
+    console.error('[音效] 找不到敲門音效');
+    return;
+  }
+
+  // 清除上一次尚未執行的敲門計時器
   knockTimersRef.current.forEach(clearTimeout);
-  knockTimersRef.current = [0, 2000, 4000].map((delay) =>
-    setTimeout(() => {
+  knockTimersRef.current = [];
+
+  // 每次敲門建立獨立播放器，避免互相中斷
+  [0, 2000, 4000].forEach((delay, index) => {
+    const timer = setTimeout(() => {
+      const knock = originalKnock.cloneNode(true) as HTMLAudioElement;
+      knock.volume = originalKnock.volume;
       knock.currentTime = 0;
-      void knock.play().catch(() => {});
-    }, delay)
-  );
+
+      console.log(`[音效] 播放第 ${index + 1} 下敲門`, knock.src);
+
+      void knock.play().catch((error) => {
+        console.error(`[音效] 第 ${index + 1} 下播放失敗`, error);
+      });
+    }, delay);
+
+    knockTimersRef.current.push(timer);
+  });
 };
 
   // Skip / fast-forward intro
