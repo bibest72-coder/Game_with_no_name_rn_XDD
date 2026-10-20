@@ -56,11 +56,11 @@ const CHAR_DELAY = 120; // 舒適且沉浸的無聲打字速度
 // 照片路徑對應：使用朋友提供的 SVG 檔案
 const getPhotoSrc = (img: string): string => {
   const photoMap: Record<string, string> = {
-    'image_5a5fbb91.png': `${import.meta.env.BASE_URL}assets/aistudio/image_5a5fbb91.svg`,
-    'image_fd2bab39.png': `${import.meta.env.BASE_URL}assets/aistudio/image_fd2bab39.svg`,
+    'image_5a5fbb91.png': `${import.meta.env.BASE_URL}assets/aistudio/200w.gif`,
+    'image_fd2bab39.png': `${import.meta.env.BASE_URL}assets/aistudio/42442.jpg`,
   };
 
-  const src = photoMap[img] ?? `${import.meta.env.BASE_URL}assets/aistudio/image_5a5fbb91.svg`;
+  const src = photoMap[img] ?? `${import.meta.env.BASE_URL}assets/aistudio/200w.gif`;
   return src;
 };
 
@@ -265,34 +265,93 @@ const startRain = () => {
 };
 
 
-  const playThreeKnocks = () => {
+  const playThreeKnocks = (): Promise<void> => {
   const originalKnock = knockAudioRef.current;
 
   if (!originalKnock) {
     console.error('[音效] 找不到敲門音效');
-    return;
+    return Promise.resolve();
   }
 
   // 清除上一次尚未執行的敲門計時器
   knockTimersRef.current.forEach(clearTimeout);
   knockTimersRef.current = [];
 
-  // 每次敲門建立獨立播放器，避免互相中斷
-  [0, 2000, 4000].forEach((delay, index) => {
-    const timer = setTimeout(() => {
-      const knock = originalKnock.cloneNode(true) as HTMLAudioElement;
-      knock.volume = originalKnock.volume;
-      knock.currentTime = 0;
+  // 三下敲門，每下間隔 2 秒；等待第三下音效播完才繼續
+  return new Promise((resolve) => {
+    [0, 2000, 4000].forEach((delay, index) => {
+      const timer = setTimeout(() => {
+        const knock = originalKnock.cloneNode(true) as HTMLAudioElement;
+        knock.volume = originalKnock.volume;
+        knock.currentTime = 0;
 
-      console.log(`[音效] 播放第 ${index + 1} 下敲門`, knock.src);
+        if (index === 2) {
+          knock.addEventListener('ended', () => resolve(), { once: true });
+        }
 
-      void knock.play().catch((error) => {
-        console.error(`[音效] 第 ${index + 1} 下播放失敗`, error);
-      });
-    }, delay);
+        console.log(`[音效] 播放第 ${index + 1} 下敲門`, knock.src);
+        void knock.play().catch((error) => {
+          console.error(`[音效] 第 ${index + 1} 下播放失敗`, error);
+          if (index === 2) resolve();
+        });
+      }, delay);
 
-    knockTimersRef.current.push(timer);
+      knockTimersRef.current.push(timer);
+    });
   });
+};
+
+/** 播放木門開啟聲：可在其他解謎事件重複使用 */
+const playDoorOpen = () => {
+  const sound = new Audio(
+    `${import.meta.env.BASE_URL}assets/audio/door-crack.wav`
+  );
+
+  sound.volume = 0.7;
+  void sound.play().catch((error) => {
+    console.error('[音效] 木門開啟聲播放失敗：', error);
+  });
+};
+
+/** 播放拖沓腳步聲，等待音檔完整播放完畢 */
+const playFootsteps = (): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    const sound = new Audio(
+      `${import.meta.env.BASE_URL}assets/audio/footsteps.mp3`
+    );
+
+    sound.volume = 0.55;
+    sound.addEventListener('ended', () => resolve(), { once: true });
+    sound.addEventListener(
+      'error',
+      () => reject(new Error('腳步音效載入失敗')),
+      { once: true }
+    );
+
+    void sound.play().catch(reject);
+  });
+};
+
+/** 開場音效順序：三下敲門 → 等 4 秒 → 腳步 → 等 1 秒 → 開門 */
+const playDoorSequence = async () => {
+  try {
+    // 播放三下敲門，並等待第三下完整結束
+    await playThreeKnocks();
+
+    // 最後一下敲門結束後，再等待 4 秒
+    await new Promise<void>((resolve) => setTimeout(resolve, 4000));
+
+    // 播放腳步聲，並等待音檔完整播放完畢
+    await playFootsteps();
+
+    // 腳步完整結束後再安靜 1 秒
+    await new Promise<void>((resolve) => setTimeout(resolve, 1000));
+
+    // 最後播放木門開啟聲
+    playDoorOpen();
+  } catch (error) {
+    console.error('[音效] 故事音效播放失敗：', error);
+  }
 };
 
   // Skip / fast-forward intro
@@ -352,7 +411,7 @@ const startRain = () => {
   useEffect(() => {
     if (currentView === 'doc_01_gr_1') {
       startRain();
-      playThreeKnocks();
+      void playDoorSequence();
     } else {
       const rain = rainAudioRef.current;
       if (rain) {
@@ -364,15 +423,22 @@ const startRain = () => {
     }
   }, [currentView]);
 
-  // README 真正逐字顯示：保留原本 DOM 結構、字體、樣式與互動，只逐字揭露文字
+  // README 逐字打出；Enter / Space 可直接完成。指令框在自身文字打完後才繪製。
   useEffect(() => {
     typewriterTimersRef.current.forEach(clearTimeout);
     typewriterTimersRef.current = [];
     if (currentView !== 'letter') return;
 
     let cancelled = false;
+    let finished = false;
+    const page = document.querySelector<HTMLElement>('.readme-page');
+    page?.classList.add('readme-typing-active');
+    let finishTyping: (() => void) | null = null;
+    let fastForwardRequested = false;
+    // 等信紙外框完整展開後，才開始逐字顯示內容。
     const beginTimer = setTimeout(() => {
       const content = document.querySelector<HTMLElement>('.readme-letter-content');
+      const title = document.querySelector<HTMLElement>('.readme-title-hidden');
       if (!content || cancelled) return;
 
       const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT);
@@ -381,7 +447,6 @@ const startRain = () => {
         const node = walker.currentNode as Text;
         if (node.nodeValue && node.nodeValue.length > 0) textNodes.push(node);
       }
-
       const characters: HTMLElement[] = [];
       textNodes.forEach((node) => {
         const fragment = document.createDocumentFragment();
@@ -396,27 +461,89 @@ const startRain = () => {
         node.parentNode?.replaceChild(fragment, node);
       });
 
-      // 按照段落逐字顯示；每段結束後停頓，空白字元不發聲
+      const commandFrames = Array.from(content.querySelectorAll<HTMLElement>('.readme-command-frame'));
+      commandFrames.forEach((frame) => {
+        frame.classList.remove('readme-frame-draw');
+        if (frame.textContent?.includes('01_GR_1')) frame.classList.add('readme-command-disabled');
+      });
+      content.style.visibility = 'visible';
+
+      const revealFrameIfReady = (frame: HTMLElement) => {
+        const chars = Array.from(frame.querySelectorAll<HTMLElement>('[data-readme-character="true"]'));
+        if (chars.every((char) => char.style.visibility === 'visible')) {
+          frame.classList.remove('readme-command-disabled');
+          frame.classList.add('readme-frame-draw');
+        }
+      };
+      const finish = () => {
+        if (finished || cancelled) return;
+        finished = true;
+        characters.forEach((span) => { span.style.visibility = 'visible'; });
+        commandFrames.forEach((frame) => {
+          frame.classList.remove('readme-command-disabled');
+          frame.classList.add('readme-frame-draw');
+        });
+        if (title) {
+          title.classList.remove('readme-title-hidden');
+          title.classList.add('readme-title-visible');
+        }
+        document.querySelector<HTMLElement>('.readme-footer')?.classList.remove('readme-footer-hidden');
+        page?.classList.remove('readme-typing-active');
+      };
+      finishTyping = finish;
+      if (fastForwardRequested) {
+  finish();
+  typewriterTimersRef.current.forEach(clearTimeout);
+  typewriterTimersRef.current = [];
+  return;
+}
+
       let elapsed = 0;
       let lastParagraph: Element | null = null;
       characters.forEach((span) => {
         const paragraph = span.closest('p');
         if (lastParagraph && paragraph && paragraph !== lastParagraph) elapsed += 420;
         lastParagraph = paragraph || lastParagraph;
+        const frame = span.closest<HTMLElement>('.readme-command-frame');
         const delay = elapsed;
         typewriterTimersRef.current.push(setTimeout(() => {
-          if (cancelled) return;
+          if (cancelled || finished) return;
           span.style.visibility = 'visible';
           const char = span.textContent || '';
           if (char.trim()) playTypewriterKey();
+          if (frame) revealFrameIfReady(frame);
         }, delay));
         elapsed += span.textContent === ' ' || span.textContent === '\n' ? 18 : 38;
       });
-    }, 1250); // 等紙張展開完成後才開始打字
+      typewriterTimersRef.current.push(setTimeout(finish, elapsed + 20));
+    }, 2400);
     typewriterTimersRef.current.push(beginTimer);
 
+    const onFastForward = (event: KeyboardEvent) => {
+      if ((event.key === 'Enter' || event.code === 'Space' || event.key === ' ') && !finished) {
+      
+const onFastForward = (event: KeyboardEvent) => {
+  if (
+    (event.key === 'Enter' ||
+      event.code === 'Space' ||
+      event.key === ' ') &&
+    !finished
+  ) {
+    event.preventDefault();
+    fastForwardRequested = true;
+
+    if (finishTyping) {
+      finishTyping();
+      typewriterTimersRef.current.forEach(clearTimeout);
+      typewriterTimersRef.current = [];
+    }
+  }
+};
+
+    window.addEventListener('keydown', onFastForward);
     return () => {
       cancelled = true;
+      window.removeEventListener('keydown', onFastForward);
       typewriterTimersRef.current.forEach(clearTimeout);
       typewriterTimersRef.current = [];
     };
@@ -776,6 +903,17 @@ const startRain = () => {
           to { transform: scaleX(1); }
         }
         .readme-paper { border-color: transparent !important; }
+        .readme-letter-content { visibility: hidden; }
+        .readme-page.readme-typing-active { pointer-events: none !important; }
+        .readme-footer-hidden { visibility: hidden; }
+        .readme-command-frame { border-color: transparent !important; outline: none !important; position: relative; }
+        .readme-command-frame:not(.readme-frame-draw) { box-shadow: none !important; }
+        .readme-command-frame.readme-frame-draw::before { content: ""; position: absolute; inset: -2px; border: 1px solid currentColor; pointer-events: none; animation: readmeCommandFrameDraw .55s ease-out both; }
+        @keyframes readmeCommandFrameDraw { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+        .readme-command-frame.readme-command-disabled { pointer-events: none !important; cursor: default !important; opacity: .72; }
+        .readme-title-hidden { visibility: hidden; }
+        .readme-title-visible { visibility: visible; animation: readmeTitleAppear .25s steps(6, end) both; }
+        @keyframes readmeTitleAppear { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
         .readme-border-top { position:absolute; top:-2px; left:-2px; right:-2px; height:2px; transform:scaleX(0); transform-origin:left center; animation:readmeTopDraw .65s linear .15s forwards; }
         .readme-border-left { position:absolute; top:-2px; bottom:-2px; left:-2px; width:2px; transform:scaleY(0); transform-origin:top center; animation:readmeSideDraw .85s ease-out .8s forwards; }
         .readme-border-right { position:absolute; top:-2px; bottom:-2px; right:-2px; width:2px; transform:scaleY(0); transform-origin:top center; animation:readmeSideDraw .85s ease-out .8s forwards; }
@@ -895,7 +1033,7 @@ const startRain = () => {
       {/* VIEW 2: Letter Page View (信件頁面) */}
       {currentView === 'letter' && (
         <div 
-          className="w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
+          className="readme-page w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Minimalist Return Button */}
@@ -928,7 +1066,7 @@ const startRain = () => {
 
             {/* Top Postage / Stamp Accent */}
             <div className="flex items-center justify-between border-b pb-4 mb-6">
-              <span className="text-xl sm:text-2xl font-bold tracking-wider">README</span>
+              <span className="readme-title-hidden text-xl sm:text-2xl font-bold tracking-wider">README</span>
             </div>
 
             {/* Letter Content Area (信件內容) */}
@@ -956,7 +1094,7 @@ const startRain = () => {
 
               <p className="py-1">
                 <span className="font-bold">指令：</span>
-                <code className="font-bold px-1.5 py-0.5 border tracking-wider ml-1 inline-block">
+                <code className="readme-command-frame font-bold px-1.5 py-0.5 border tracking-wider ml-1 inline-block">
                   name &lt;目前名字&gt; &lt;新名字&gt;
                 </code>
               </p>
@@ -966,7 +1104,7 @@ const startRain = () => {
               </p>
 
               <p>
-                用 <code className="font-bold px-1.5 py-0.5 border mx-0.5 inline-block">theme</code> 或 <code className="font-bold px-1.5 py-0.5 border mx-0.5 inline-block">toggle</code> 就能自由切換黑白畫面 
+                用 <code className="readme-command-frame font-bold px-1.5 py-0.5 border mx-0.5 inline-block">theme</code> 或 <code className="readme-command-frame font-bold px-1.5 py-0.5 border mx-0.5 inline-block">toggle</code> 就能自由切換黑白畫面 
               </p>
 
               <p>
@@ -974,16 +1112,16 @@ const startRain = () => {
               </p>
 
               <p className="pt-1">
-                迷路時也別擔心，按一下 <kbd className="font-bold px-1.5 py-0.5 border mx-0.5 inline-block">Esc</kbd> 就能一秒回到輸入欄啦 (๑•̀ㅂ•́)و✧
+                迷路時也別擔心，按一下 <kbd className="readme-command-frame font-bold px-1.5 py-0.5 border mx-0.5 inline-block">Esc</kbd> 就能一秒回到輸入欄啦 (๑•̀ㅂ•́)و✧
               </p>
 
               <p className="pt-2">
-                OK 那麼親愛的 <strong className="font-bold">{userName}</strong> 歡迎來到我們創造的世界、聽一個有趣故事 <code className="font-bold px-1.5 py-0.5 border mx-0.5 inline-block cursor-pointer hover:opacity-80" onClick={() => setCurrentView('doc_01_gr_1')} title="點擊或輸入 01_GR_1 前往">01_GR_1</code>
+                OK 那麼親愛的 <strong className="font-bold">{userName}</strong> 歡迎來到我們創造的世界、聽一個有趣故事 <code className="readme-command-frame readme-command-disabled font-bold px-1.5 py-0.5 border mx-0.5 inline-block cursor-pointer hover:opacity-80" onClick={() => setCurrentView('doc_01_gr_1')} title="點擊或輸入 01_GR_1 前往">01_GR_1</code>
               </p>
             </div>
 
             {/* Bottom Letter Footer / Divider */}
-            <div className="pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
+            <div className="readme-footer readme-footer-hidden pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
               <span>END OF LETTER</span>
             </div>
           </div>
@@ -993,7 +1131,7 @@ const startRain = () => {
       {/* VIEW 3: Easter Egg Letter Page View (彩蛋信件頁面) */}
       {currentView === 'easter_egg' && (
         <div 
-          className="w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
+          className="readme-page w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Minimalist Return Button */}
@@ -1029,7 +1167,7 @@ const startRain = () => {
             </div>
 
             {/* Bottom Letter Footer / Divider */}
-            <div className="pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
+            <div className="readme-footer readme-footer-hidden pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
               <span>END OF LETTER</span>
             </div>
           </div>
@@ -1039,7 +1177,7 @@ const startRain = () => {
       {/* VIEW 4: Story Document View (01_GR_1) */}
       {currentView === 'doc_01_gr_1' && (
         <div 
-          className="w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
+          className="readme-page w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Minimalist Return Button */}
@@ -1112,7 +1250,7 @@ const startRain = () => {
             </div>
 
             {/* Bottom Letter Footer / Divider */}
-            <div className="pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
+            <div className="readme-footer readme-footer-hidden pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
               <span>END OF LETTER</span>
             </div>
           </div>
@@ -1122,7 +1260,7 @@ const startRain = () => {
       {/* VIEW 5: Interactive Object Letter View (Ridge Lodge / 山脊旅店) */}
       {currentView === 'letter_ridge_lodge' && (
         <div 
-          className="w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
+          className="readme-page w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Minimalist Return Button */}
@@ -1160,7 +1298,7 @@ const startRain = () => {
             </div>
 
             {/* Bottom Letter Footer / Divider */}
-            <div className="pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
+            <div className="readme-footer readme-footer-hidden pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
               <span>END OF LETTER</span>
             </div>
           </div>
@@ -1170,7 +1308,7 @@ const startRain = () => {
       {/* VIEW: 尸米那誰喔 (Shiminaseo) Letter View */}
       {currentView === 'letter_shiminaseo' && (
         <div 
-          className="w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
+          className="readme-page w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Minimalist Return Button */}
@@ -1242,7 +1380,7 @@ const startRain = () => {
                 QQ
               </p>
               <p className="pl-4 sm:pl-6 opacity-90 pt-1">
-                但前兩個字是 以軒醬的食物~ 
+                但前兩個字是 苡萱醬的食物~ 
               </p>
               <p className="pl-4 sm:pl-6 opacity-90">
                 啾咪~ (/▽＼)
@@ -1250,7 +1388,7 @@ const startRain = () => {
             </div>
 
             {/* Bottom Letter Footer / Divider */}
-            <div className="pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
+            <div className="readme-footer readme-footer-hidden pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
               <span>END OF LETTER</span>
             </div>
           </div>
@@ -1260,7 +1398,7 @@ const startRain = () => {
       {/* VIEW: 01_TE_67 Story Document View */}
       {currentView === 'doc_01_te_67' && (
         <div 
-          className="w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
+          className="readme-page w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Minimalist Return Button */}
@@ -1334,7 +1472,7 @@ const startRain = () => {
                   }`}
                 >
                   <img
-                    src={getPhotoSrc('image_5a5fbb91.png')}
+                    src={getPhotoSrc('image_fd2bab39.png')}
                     alt="苡萱醬的美照"
                     className="max-w-[260px] sm:max-w-[320px] w-full h-auto object-contain block select-none"
                     loading="lazy"
@@ -1372,7 +1510,7 @@ const startRain = () => {
                     }`}
                   >
                     <img
-                      src={getPhotoSrc('image_fd2bab39.png')}
+                      src={getPhotoSrc('image_5a5fbb91.png')}
                       alt="杜杜醬的美照"
                       className="max-w-[200px] sm:max-w-[240px] w-full h-auto object-contain block select-none"
                       loading="lazy"
@@ -1391,7 +1529,7 @@ const startRain = () => {
             </div>
 
             {/* Bottom Letter Footer / Divider */}
-            <div className="pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
+            <div className="readme-footer readme-footer-hidden pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
               <span>END OF LETTER</span>
             </div>
           </div>
