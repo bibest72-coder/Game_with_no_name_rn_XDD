@@ -294,6 +294,64 @@ const startRain = () => {
     knockTimersRef.current.push(timer);
   });
 };
+  
+/** 播放木門開啟聲：之後可在其他解謎事件重複使用 */
+const playDoorOpen = () => {
+  const sound = new Audio(
+    `${import.meta.env.BASE_URL}assets/audio/door-crack.wav`
+  );
+
+  sound.volume = 0.7;
+
+  void sound.play().catch((error) => {
+    console.error('[音效] 木門開啟聲播放失敗：', error);
+  });
+};
+
+
+/** 播放拖沓腳步聲 */
+const playFootsteps = (): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    const sound = new Audio(
+      `${import.meta.env.BASE_URL}assets/audio/footsteps.mp3`
+    );
+
+    sound.volume = 0.55;
+
+    sound.addEventListener('ended', () => resolve(), { once: true });
+    sound.addEventListener(
+      'error',
+      () => reject(new Error('腳步音效載入失敗')),
+      { once: true }
+    );
+
+    void sound.play().catch(reject);
+  });
+};
+
+  
+/** 故事開場音效：敲門後等 4 秒，再走路，最後開門 */
+const playDoorSequence = () => {
+  
+/** 故事開場音效：等待敲門結束，再走路，最後開門 */
+const playDoorSequence = () => {
+  // 等最後一下敲門後的 4 秒
+  setTimeout(async () => {
+    try {
+      // 等腳步聲完整播放完畢
+      await playFootsteps();
+
+      // 腳步結束後，安靜 1 秒
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // 播放木門開啟聲
+      playDoorOpen();
+    } catch (error) {
+      console.error('[音效] 故事音效播放失敗：', error);
+    }
+  }, 6000);
+};
+
 
   // Skip / fast-forward intro
   const skipIntro = () => {
@@ -353,6 +411,7 @@ const startRain = () => {
     if (currentView === 'doc_01_gr_1') {
       startRain();
       playThreeKnocks();
+    playDoorSequence();
     } else {
       const rain = rainAudioRef.current;
       if (rain) {
