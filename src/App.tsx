@@ -56,11 +56,11 @@ const CHAR_DELAY = 120; // 舒適且沉浸的無聲打字速度
 // 照片路徑對應：使用朋友提供的 SVG 檔案
 const getPhotoSrc = (img: string): string => {
   const photoMap: Record<string, string> = {
-    'image_5a5fbb91.png': `${import.meta.env.BASE_URL}assets/aistudio/200w.gif`,
-    'image_fd2bab39.png': `${import.meta.env.BASE_URL}assets/aistudio/image_5a5fbb91.svg`,
+    'image_5a5fbb91.png': `${import.meta.env.BASE_URL}assets/aistudio/image_5a5fbb91.svg`,
+    'image_fd2bab39.png': `${import.meta.env.BASE_URL}assets/aistudio/image_fd2bab39.svg`,
   };
 
-  const src = photoMap[img] ?? `${import.meta.env.BASE_URL}assets/aistudio/200w.gif`;
+  const src = photoMap[img] ?? `${import.meta.env.BASE_URL}assets/aistudio/image_5a5fbb91.svg`;
   return src;
 };
 
@@ -372,7 +372,10 @@ const startRain = () => {
 
     let cancelled = false;
     let finished = false;
+    const page = document.querySelector<HTMLElement>('.readme-page');
+    page?.classList.add('readme-typing-active');
     let finishTyping: (() => void) | null = null;
+    // 等信紙外框完整展開後，才開始逐字顯示內容。
     const beginTimer = setTimeout(() => {
       const content = document.querySelector<HTMLElement>('.readme-letter-content');
       const title = document.querySelector<HTMLElement>('.readme-title-hidden');
@@ -424,6 +427,8 @@ const startRain = () => {
           title.classList.remove('readme-title-hidden');
           title.classList.add('readme-title-visible');
         }
+        document.querySelector<HTMLElement>('.readme-footer')?.classList.remove('readme-footer-hidden');
+        page?.classList.remove('readme-typing-active');
       };
       finishTyping = finish;
 
@@ -445,7 +450,7 @@ const startRain = () => {
         elapsed += span.textContent === ' ' || span.textContent === '\n' ? 18 : 38;
       });
       typewriterTimersRef.current.push(setTimeout(finish, elapsed + 20));
-    }, 1250);
+    }, 2400);
     typewriterTimersRef.current.push(beginTimer);
 
     const onFastForward = (event: KeyboardEvent) => {
@@ -820,7 +825,10 @@ const startRain = () => {
         }
         .readme-paper { border-color: transparent !important; }
         .readme-letter-content { visibility: hidden; }
-        .readme-command-frame { border-color: transparent !important; position: relative; }
+        .readme-page.readme-typing-active { pointer-events: none !important; }
+        .readme-footer-hidden { visibility: hidden; }
+        .readme-command-frame { border-color: transparent !important; outline: none !important; position: relative; }
+        .readme-command-frame:not(.readme-frame-draw) { box-shadow: none !important; }
         .readme-command-frame.readme-frame-draw::before { content: ""; position: absolute; inset: -2px; border: 1px solid currentColor; pointer-events: none; animation: readmeCommandFrameDraw .55s ease-out both; }
         @keyframes readmeCommandFrameDraw { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
         .readme-command-frame.readme-command-disabled { pointer-events: none !important; cursor: default !important; opacity: .72; }
@@ -946,7 +954,7 @@ const startRain = () => {
       {/* VIEW 2: Letter Page View (信件頁面) */}
       {currentView === 'letter' && (
         <div 
-          className="w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
+          className="readme-page w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Minimalist Return Button */}
@@ -1034,7 +1042,7 @@ const startRain = () => {
             </div>
 
             {/* Bottom Letter Footer / Divider */}
-            <div className="pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
+            <div className="readme-footer readme-footer-hidden pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
               <span>END OF LETTER</span>
             </div>
           </div>
@@ -1044,7 +1052,7 @@ const startRain = () => {
       {/* VIEW 3: Easter Egg Letter Page View (彩蛋信件頁面) */}
       {currentView === 'easter_egg' && (
         <div 
-          className="w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
+          className="readme-page w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Minimalist Return Button */}
@@ -1080,7 +1088,7 @@ const startRain = () => {
             </div>
 
             {/* Bottom Letter Footer / Divider */}
-            <div className="pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
+            <div className="readme-footer readme-footer-hidden pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
               <span>END OF LETTER</span>
             </div>
           </div>
@@ -1090,7 +1098,7 @@ const startRain = () => {
       {/* VIEW 4: Story Document View (01_GR_1) */}
       {currentView === 'doc_01_gr_1' && (
         <div 
-          className="w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
+          className="readme-page w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Minimalist Return Button */}
@@ -1163,7 +1171,7 @@ const startRain = () => {
             </div>
 
             {/* Bottom Letter Footer / Divider */}
-            <div className="pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
+            <div className="readme-footer readme-footer-hidden pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
               <span>END OF LETTER</span>
             </div>
           </div>
@@ -1173,7 +1181,7 @@ const startRain = () => {
       {/* VIEW 5: Interactive Object Letter View (Ridge Lodge / 山脊旅店) */}
       {currentView === 'letter_ridge_lodge' && (
         <div 
-          className="w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
+          className="readme-page w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Minimalist Return Button */}
@@ -1211,7 +1219,7 @@ const startRain = () => {
             </div>
 
             {/* Bottom Letter Footer / Divider */}
-            <div className="pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
+            <div className="readme-footer readme-footer-hidden pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
               <span>END OF LETTER</span>
             </div>
           </div>
@@ -1221,7 +1229,7 @@ const startRain = () => {
       {/* VIEW: 尸米那誰喔 (Shiminaseo) Letter View */}
       {currentView === 'letter_shiminaseo' && (
         <div 
-          className="w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
+          className="readme-page w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Minimalist Return Button */}
@@ -1301,7 +1309,7 @@ const startRain = () => {
             </div>
 
             {/* Bottom Letter Footer / Divider */}
-            <div className="pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
+            <div className="readme-footer readme-footer-hidden pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
               <span>END OF LETTER</span>
             </div>
           </div>
@@ -1311,7 +1319,7 @@ const startRain = () => {
       {/* VIEW: 01_TE_67 Story Document View */}
       {currentView === 'doc_01_te_67' && (
         <div 
-          className="w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
+          className="readme-page w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Minimalist Return Button */}
@@ -1385,7 +1393,7 @@ const startRain = () => {
                   }`}
                 >
                   <img
-                    src={getPhotoSrc('image_fd2bab39.png')}
+                    src={getPhotoSrc('image_5a5fbb91.png')}
                     alt="苡萱醬的美照"
                     className="max-w-[260px] sm:max-w-[320px] w-full h-auto object-contain block select-none"
                     loading="lazy"
@@ -1423,7 +1431,7 @@ const startRain = () => {
                     }`}
                   >
                     <img
-                      src={getPhotoSrc('image_5a5fbb91.png')}
+                      src={getPhotoSrc('image_fd2bab39.png')}
                       alt="杜杜醬的美照"
                       className="max-w-[200px] sm:max-w-[240px] w-full h-auto object-contain block select-none"
                       loading="lazy"
@@ -1442,7 +1450,7 @@ const startRain = () => {
             </div>
 
             {/* Bottom Letter Footer / Divider */}
-            <div className="pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
+            <div className="readme-footer readme-footer-hidden pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
               <span>END OF LETTER</span>
             </div>
           </div>
