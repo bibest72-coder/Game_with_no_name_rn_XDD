@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 type ThemeMode = 'black' | 'white';
-type ViewMode = 'terminal' | 'letter' | 'easter_egg' | 'doc_01_gr_1' | 'letter_ridge_lodge' | 'list';
+type ViewMode = 'terminal' | 'letter' | 'easter_egg' | 'doc_01_gr_1' | 'doc_01_te_67' | 'letter_ridge_lodge' | 'letter_shiminaseo' | 'list';
 type IntroPhase = 'typing' | 'hold' | 'fade_out' | 'blank' | 'completed';
 
 interface LetterCatalogItem {
@@ -31,10 +31,22 @@ const LETTER_CATALOG: LetterCatalogItem[] = [
     view: 'doc_01_gr_1',
   },
   {
+    id: '01_te_67',
+    cmd: '01_TE_67',
+    title: '01_TE_67',
+    view: 'doc_01_te_67',
+  },
+  {
     id: 'inspect_ri',
     cmd: 'inspect_ri',
     title: '山脊旅店 (Ridge Lodge)',
     view: 'letter_ridge_lodge',
+  },
+  {
+    id: 'inspect_sh',
+    cmd: 'inspect_sh',
+    title: '尸米那誰喔 (Shiminaseo)',
+    view: 'letter_shiminaseo',
   },
 ];
 
@@ -42,10 +54,10 @@ const INTRO_TEXT = "天暗示意\n是時候找地方落腳了...";
 const CHAR_DELAY = 120; // 舒適且沉浸的無聲打字速度
 
 export default function App() {
-  // 一次性重置遊戲至純淨初始狀態 (立即清除先前的所有暫存與記錄)
+  // 一次性重置遊戲至純淨初始狀態 (立即清除先前的所有暫存與記錄，開始全新遊玩)
   if (typeof window !== 'undefined') {
     try {
-      const resetKey = 'game_reset_v4_manual';
+      const resetKey = 'game_fresh_start_play_v1';
       if (!localStorage.getItem(resetKey)) {
         localStorage.clear();
         localStorage.setItem(resetKey, 'true');
@@ -59,6 +71,7 @@ export default function App() {
   const [inputValue, setInputValue] = useState('');
   const [miniInputValue, setMiniInputValue] = useState('');
   const [hintMessage, setHintMessage] = useState<string | null>(null);
+
 
   // 自訂資料夾名稱 (可透過 tittle 指令更改並持久化儲存)
   const [folderCustomNames, setFolderCustomNames] = useState<Record<string, string>>(() => {
@@ -112,7 +125,9 @@ export default function App() {
     if (currentView === 'letter') recordLetterUnlock('simple');
     else if (currentView === 'easter_egg') recordLetterUnlock('k33p_1t_s1mpl3');
     else if (currentView === 'doc_01_gr_1') recordLetterUnlock('01_gr_1');
+    else if (currentView === 'doc_01_te_67') recordLetterUnlock('01_te_67');
     else if (currentView === 'letter_ridge_lodge') recordLetterUnlock('inspect_ri');
+    else if (currentView === 'letter_shiminaseo') recordLetterUnlock('inspect_sh');
   }, [currentView]);
 
   const handleBack = () => {
@@ -120,6 +135,8 @@ export default function App() {
       setCurrentView('list');
     } else if (currentView === 'letter_ridge_lodge' && previousView === 'doc_01_gr_1') {
       setCurrentView('doc_01_gr_1');
+    } else if (currentView === 'letter_shiminaseo' && previousView === 'doc_01_te_67') {
+      setCurrentView('doc_01_te_67');
     } else {
       setCurrentView('terminal');
     }
@@ -136,6 +153,36 @@ export default function App() {
     }
   });
 
+  // 6 號碼的代號/名稱 (預設為 '6'，可透過 6 或 name 指令更名)
+  const [name6, setName6] = useState<string>(() => {
+    try {
+      return localStorage.getItem('cli_name_6') || '6';
+    } catch {
+      return '6';
+    }
+  });
+
+  // 7 號碼的代號/名稱 (預設為 '7'，可透過 7 或 name 指令更名)
+  const [name7, setName7] = useState<string>(() => {
+    try {
+      return localStorage.getItem('cli_name_7') || '7';
+    } catch {
+      return '7';
+    }
+  });
+
+  // 記錄所有曾經被取過的名字 (防止撞名：先取的之後不能再取)
+  const [usedNames, setUsedNames] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('cli_used_names');
+      if (saved) {
+        const list = JSON.parse(saved);
+        if (Array.isArray(list) && list.length > 0) return list;
+      }
+    } catch {}
+    return ['User', '6', '7'];
+  });
+
   // Entrance typewriter lifecycle: typing -> hold -> fade_out -> blank -> completed
   const [introPhase, setIntroPhase] = useState<IntroPhase>('typing');
   const [displayedText, setDisplayedText] = useState('');
@@ -143,53 +190,6 @@ export default function App() {
   
   const inputRef = useRef<HTMLInputElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  const rainAudioRef = useRef<HTMLAudioElement | null>(null);
-  const knockAudioRef = useRef<HTMLAudioElement | null>(null);
-  const [soundEnabled, setSoundEnabled] = useState(true);
-
-useEffect(() => {
-  const base = import.meta.env.BASE_URL;
-
-  const rain = new Audio(`${base}assets/audio/rain.wav`);
-  rain.loop = true;
-  rain.volume = 0.25;
-
-  const knock = new Audio(`${base}assets/audio/knock.mp3`);
-  knock.volume = 0.8;
-
-  rainAudioRef.current = rain;
-  knockAudioRef.current = knock;
-
-  return () => {
-    rain.pause();
-    knock.pause();
-  };
-}, []);
-
-const startRain = () => {
-  if (!soundEnabled) return;
-
-  const rain = rainAudioRef.current;
-  if (rain && rain.paused) {
-    void rain.play().catch(() => {});
-  }
-};
-
-const playThreeKnocks = () => {
-  if (!soundEnabled) return;
-
-  const knock = knockAudioRef.current;
-  if (!knock) return;
-
-  [0, 1000, 2000].forEach((delay) => {
-    setTimeout(() => {
-      if (!soundEnabled) return;
-      knock.currentTime = 0;
-      void knock.play().catch(() => {});
-    }, delay);
-  });
-};
 
   // Skip / fast-forward intro
   const skipIntro = () => {
@@ -252,8 +252,6 @@ const playThreeKnocks = () => {
 
   // 全域點擊事件
   const handleGlobalClick = () => {
-    startRain();
-    
     if (introPhase !== 'completed') {
       skipIntro();
       return;
@@ -334,10 +332,14 @@ const playThreeKnocks = () => {
       setCurrentView('easter_egg');
       setHintMessage(null);
     } else if (cmd === '01_gr_1' || cmd === '01-gr-1') {
-      startRain();
-      playThreeKnocks();
       // 劇情文件指令：導向 01_GR_1 劇情頁面
+      setPreviousView(currentView === 'list' ? 'list' : 'terminal');
       setCurrentView('doc_01_gr_1');
+      setHintMessage(null);
+    } else if (cmd === '01_te_67' || cmd === '01-te-67') {
+      // 劇情文件指令：導向 01_TE_67 劇情頁面
+      setPreviousView(currentView === 'list' ? 'list' : 'terminal');
+      setCurrentView('doc_01_te_67');
       setHintMessage(null);
     } else if (cmd === 'list') {
       // 導向探索記錄目錄 (僅限 list，移除 log 指令)
@@ -365,8 +367,13 @@ const playThreeKnocks = () => {
         setPreviousView(currentView);
         setCurrentView('letter_ridge_lodge');
         setHintMessage(null);
+      } else if (target === 'sh') {
+        // 成功調查「尸米那誰喔 (Shiminaseo)」
+        setPreviousView(currentView);
+        setCurrentView('letter_shiminaseo');
+        setHintMessage(null);
       } else {
-        setHintMessage(`未知的目標物件代號: "${target}"。請確認物件英文名稱 (例如: inspect_ri)`);
+        setHintMessage(`未知的目標物件代號: "${target}"。請確認物件英文名稱 (例如: inspect_ri, inspect_sh)`);
       }
     } else if (cmd === 'tittle' || cmd === 'title') {
       // 更改資料夾名稱指令: tittle <原本的名字> <要換的名字>
@@ -414,49 +421,120 @@ const playThreeKnocks = () => {
           }
         }
       }
-    } else if (cmd === 'name') {
-      // 指定名字替換指令: name <指定的名字> <要換的名字> (例如: name User aa)
-      const rest = command.slice(4).trim();
-      
-      // 容錯檢查：目前名字是否相符（支援目前名字若帶空格也能被辨識換掉）
-      let matchedCurrent = false;
-      let newNameCandidate = '';
-      let specifiedDisplay = '';
+    } else if (cmd === '6') {
+      // 專屬於 6 號碼的更名指令: 6 <原本的名字> <要換的名字>
+      const rest = command.slice(cmd.length).trim();
+      const parts = rest.split(/\s+/);
 
-      if (userName && rest.toLowerCase().startsWith(userName.toLowerCase() + ' ')) {
-        matchedCurrent = true;
-        specifiedDisplay = userName;
-        newNameCandidate = rest.slice(userName.length).trim();
+      if (parts.length < 2 || !parts[0] || !parts[1]) {
+        setHintMessage(`格式錯誤。格式為: 6 <原本的名字> <要換的名字> (目前名稱: "${name6}")`);
       } else {
-        const parts = rest.split(/\s+/);
-        if (parts.length >= 1 && parts[0]) {
-          specifiedDisplay = parts[0].replace(/^["']|["']$/g, '');
-          if (specifiedDisplay.toLowerCase() === userName.toLowerCase()) {
-            matchedCurrent = true;
-            newNameCandidate = parts.slice(1).join(' ').trim();
-          }
-        }
-      }
-
-      if (!rest || !newNameCandidate && !matchedCurrent) {
-        setHintMessage(`格式錯誤。格式為: name <指定名字> <要換的名字>`);
-      } else if (!matchedCurrent) {
-        setHintMessage(`指定的名字 "${specifiedDisplay}" 不相符。 `);
-      } else {
-        const cleanNewName = newNameCandidate.replace(/^["']|["']$/g, '').trim();
+        const cleanSpecified = parts[0].replace(/^["']|["']$/g, '').trim();
+        const cleanNewName = parts.slice(1).join(' ').trim().replace(/^["']|["']$/g, '');
 
         if (!cleanNewName) {
-          setHintMessage(`格式錯誤。格式為: name <指定名字> <要換的名字>`);
+          setHintMessage(`格式錯誤。格式為: 6 <原本的名字> <要換的名字>`);
+        } else if (cleanSpecified.toLowerCase() !== name6.toLowerCase()) {
+          setHintMessage(`指定的名字 "${cleanSpecified}" 不相符，目前 6 號碼的名稱為 "${name6}"。`);
         } else if (/\s/.test(cleanNewName)) {
-          // 偵測到新名字包含空格時提示報錯
           setHintMessage(`名字不能包含空格，建議使用底線 (例如: so_sad)`);
+        } else if (usedNames.some(n => n.toLowerCase() === cleanNewName.toLowerCase())) {
+          // 防止撞名字：先取的之後不能取了
+          setHintMessage(`名稱 "${cleanNewName}" 已經被使用過，不能重複取名！請換一個新名稱。`);
         } else {
-          const oldName = userName;
-          setUserName(cleanNewName);
+          const oldName = name6;
+          setName6(cleanNewName);
+          const nextUsed = [...usedNames, cleanNewName];
+          setUsedNames(nextUsed);
           try {
-            localStorage.setItem('cli_user_name_v2', cleanNewName);
+            localStorage.setItem('cli_name_6', cleanNewName);
+            localStorage.setItem('cli_used_names', JSON.stringify(nextUsed));
           } catch {}
-          setHintMessage(`使用者名稱已由 "${oldName}" 修改為 "${cleanNewName}" `);
+          setHintMessage(`6 號碼名稱已由 "${oldName}" 修改為 "${cleanNewName}"！`);
+        }
+      }
+    } else if (cmd === '7') {
+      // 專屬於 7 號碼的更名指令: 7 <原本的名字> <要換的名字>
+      const rest = command.slice(cmd.length).trim();
+      const parts = rest.split(/\s+/);
+
+      if (parts.length < 2 || !parts[0] || !parts[1]) {
+        setHintMessage(`格式錯誤。格式為: 7 <原本的名字> <要換的名字> (目前名稱: "${name7}")`);
+      } else {
+        const cleanSpecified = parts[0].replace(/^["']|["']$/g, '').trim();
+        const cleanNewName = parts.slice(1).join(' ').trim().replace(/^["']|["']$/g, '');
+
+        if (!cleanNewName) {
+          setHintMessage(`格式錯誤。格式為: 7 <原本的名字> <要換的名字>`);
+        } else if (cleanSpecified.toLowerCase() !== name7.toLowerCase()) {
+          setHintMessage(`指定的名字 "${cleanSpecified}" 不相符，目前 7 號碼的名稱為 "${name7}"。`);
+        } else if (/\s/.test(cleanNewName)) {
+          setHintMessage(`名字不能包含空格，建議使用底線 (例如: so_sad)`);
+        } else if (usedNames.some(n => n.toLowerCase() === cleanNewName.toLowerCase())) {
+          // 防止撞名字：先取的之後不能取了
+          setHintMessage(`名稱 "${cleanNewName}" 已經被使用過，不能重複取名！請換一個新名稱。`);
+        } else {
+          const oldName = name7;
+          setName7(cleanNewName);
+          const nextUsed = [...usedNames, cleanNewName];
+          setUsedNames(nextUsed);
+          try {
+            localStorage.setItem('cli_name_7', cleanNewName);
+            localStorage.setItem('cli_used_names', JSON.stringify(nextUsed));
+          } catch {}
+          setHintMessage(`7 號碼名稱已由 "${oldName}" 修改為 "${cleanNewName}"！`);
+        }
+      }
+    } else if (cmd === 'name') {
+      // 通用名字更名指令: name <原本的名字> <要換的名字>
+      const rest = command.slice(cmd.length).trim();
+      const parts = rest.split(/\s+/);
+
+      if (parts.length < 2 || !parts[0] || !parts[1]) {
+        setHintMessage(`格式錯誤。格式為: name <原本的名字> <要換的名字>`);
+      } else {
+        const cleanSpecified = parts[0].replace(/^["']|["']$/g, '').trim();
+        const cleanNewName = parts.slice(1).join(' ').trim().replace(/^["']|["']$/g, '');
+
+        if (!cleanNewName) {
+          setHintMessage(`格式錯誤。格式為: name <原本的名字> <要換的名字>`);
+        } else if (
+          cleanSpecified.toLowerCase() !== userName.toLowerCase() &&
+          cleanSpecified.toLowerCase() !== name6.toLowerCase() &&
+          cleanSpecified.toLowerCase() !== name7.toLowerCase()
+        ) {
+          setHintMessage(`指定的名字 "${cleanSpecified}" 不相符。`);
+        } else if (/\s/.test(cleanNewName)) {
+          setHintMessage(`名字不能包含空格，建議使用底線 (例如: so_sad)`);
+        } else if (usedNames.some(n => n.toLowerCase() === cleanNewName.toLowerCase())) {
+          // 防止撞名字：先取的之後不能取了
+          setHintMessage(`名稱 "${cleanNewName}" 已經被使用過，不能重複取名！請換一個新名稱。`);
+        } else {
+          const isTarget6 = cleanSpecified.toLowerCase() === name6.toLowerCase();
+          const isTarget7 = cleanSpecified.toLowerCase() === name7.toLowerCase();
+          const oldName = isTarget6 ? name6 : isTarget7 ? name7 : userName;
+          if (isTarget6) {
+            setName6(cleanNewName);
+            try {
+              localStorage.setItem('cli_name_6', cleanNewName);
+            } catch {}
+          } else if (isTarget7) {
+            setName7(cleanNewName);
+            try {
+              localStorage.setItem('cli_name_7', cleanNewName);
+            } catch {}
+          } else {
+            setUserName(cleanNewName);
+            try {
+              localStorage.setItem('cli_user_name_v2', cleanNewName);
+            } catch {}
+          }
+          const nextUsed = [...usedNames, cleanNewName];
+          setUsedNames(nextUsed);
+          try {
+            localStorage.setItem('cli_used_names', JSON.stringify(nextUsed));
+          } catch {}
+          setHintMessage(`名稱已由 "${oldName}" 修改為 "${cleanNewName}"！`);
         }
       }
     } else {
@@ -468,7 +546,6 @@ const playThreeKnocks = () => {
   // Terminal command submission handler
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    startRain();
     processCommand(inputValue);
     setInputValue('');
   };
@@ -476,7 +553,6 @@ const playThreeKnocks = () => {
   // Mini input bar handler (目錄頁面小輸入欄)
   const handleMiniSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    startRain();
     processCommand(miniInputValue);
     setMiniInputValue('');
   };
@@ -873,6 +949,237 @@ const playThreeKnocks = () => {
             {/* Letter Content Area (預留給您日後填寫內容) */}
             <div className="min-h-[220px] sm:min-h-[280px] font-mono leading-relaxed text-xs sm:text-sm space-y-3.5">
               {/* 請在此處放入您未來的山脊旅店內容 */}
+            </div>
+
+            {/* Bottom Letter Footer / Divider */}
+            <div className="pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
+              <span>END OF LETTER</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* VIEW: 尸米那誰喔 (Shiminaseo) Letter View */}
+      {currentView === 'letter_shiminaseo' && (
+        <div 
+          className="w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Minimalist Return Button */}
+          <div className="w-full flex justify-start mb-4">
+            <button
+              type="button"
+              onClick={handleBack}
+              className={`px-3 py-1 text-xs sm:text-sm border-2 cursor-pointer font-bold tracking-wider uppercase transition-transform active:translate-y-0.5 ${
+                isDark
+                  ? 'border-white hover:bg-white hover:text-black bg-black text-white'
+                  : 'border-black hover:bg-black hover:text-white bg-white text-black'
+              }`}
+              title="返回 (Esc)"
+            >
+              [ ◄ 返回 ]
+            </button>
+          </div>
+
+          {/* Letter Envelope Box (與其他信件同款框框) */}
+          <div
+            className={`w-full border-2 p-6 sm:p-10 relative theme-transition ${
+              isDark ? 'border-white bg-black' : 'border-black bg-white'
+            }`}
+          >
+            {/* Top Header */}
+            <div className="flex items-center justify-between border-b pb-4 mb-6">
+              <span className="text-xl sm:text-2xl font-bold tracking-wider">
+                尸米那誰喔 (Shiminaseo)
+              </span>
+            </div>
+
+            {/* Letter Content Area */}
+            <div className="min-h-[220px] sm:min-h-[280px] font-mono leading-relaxed text-xs sm:text-sm space-y-3.5">
+              <p>
+                <span
+                  className={`inline-block font-bold ${
+                    isDark ? 'text-[#7dd3fc]' : 'text-[#1d4ed8]'
+                  }`}
+                >
+                  {name6}
+                </span>
+                ：你是從哪裡來的? 你是怎麼來的?
+              </p>
+              <p className="pl-4 sm:pl-6 opacity-90">
+                你知不知道可以用 <code className={`font-bold px-1.5 py-0.5 border mx-0.5 inline-block ${isDark ? 'border-white text-white' : 'border-black text-black'}`}>inspect_sh</code> 來?
+              </p>
+              <p className="pl-4 sm:pl-6 opacity-90">
+                好的現在你知道了~親~ :D
+              </p>
+
+              <div className="pt-3 pb-1 pl-4 sm:pl-6 opacity-80 tracking-wider">
+                ㄅ一 ㄅ一   迎來到 苡萱醬小課堂 ~
+              </div>
+
+              <p className="pt-1">
+                <span
+                  className={`inline-block font-bold ${
+                    isDark ? 'text-[#7dd3fc]' : 'text-[#1d4ed8]'
+                  }`}
+                >
+                  {name6}
+                </span>
+                ： 尸米那誰喔 is すみません (•ˋ _ ˊ•)
+              </p>
+              <p className="pl-4 sm:pl-6 opacity-90">
+                {'意思是 失禮了、不好意思 (>⇀᷿<)'}
+              </p>
+              <p className="pl-4 sm:pl-6 opacity-90">
+                QQ
+              </p>
+              <p className="pl-4 sm:pl-6 opacity-90 pt-1">
+                但前兩個字是 以軒醬的食物~ 
+              </p>
+              <p className="pl-4 sm:pl-6 opacity-90">
+                啾咪~ (/▽＼)
+              </p>
+            </div>
+
+            {/* Bottom Letter Footer / Divider */}
+            <div className="pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
+              <span>END OF LETTER</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* VIEW: 01_TE_67 Story Document View */}
+      {currentView === 'doc_01_te_67' && (
+        <div 
+          className="w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Minimalist Return Button */}
+          <div className="w-full flex justify-start mb-4">
+            <button
+              type="button"
+              onClick={handleBack}
+              className={`px-3 py-1 text-xs sm:text-sm border-2 cursor-pointer font-bold tracking-wider uppercase transition-transform active:translate-y-0.5 ${
+                isDark
+                  ? 'border-white hover:bg-white hover:text-black bg-black text-white'
+                  : 'border-black hover:bg-black hover:text-white bg-white text-black'
+              }`}
+              title="返回 (Esc)"
+            >
+              [ ◄ 返回 ]
+            </button>
+          </div>
+
+          {/* Letter Envelope Box (與其他信件同款框框) */}
+          <div
+            className={`w-full border-2 p-6 sm:p-10 relative theme-transition ${
+              isDark ? 'border-white bg-black' : 'border-black bg-white'
+            }`}
+          >
+            {/* Top Header */}
+            <div className="flex items-center justify-between border-b pb-4 mb-6">
+              <span className="text-xl sm:text-2xl font-bold tracking-wider">
+                01_TE_67
+              </span>
+            </div>
+
+            {/* Letter Content Area */}
+            <div className="min-h-[220px] sm:min-h-[280px] font-mono leading-relaxed text-xs sm:text-sm space-y-3.5">
+              <p>
+                <span
+                  className={`inline-block font-bold ${
+                    isDark ? 'text-[#7dd3fc]' : 'text-[#1d4ed8]'
+                  }`}
+                >
+                  {name6}
+                </span>
+                ： 哈喽 大家好 我是苡萱醬 ~~~ o(*////▽////*)q
+              </p>
+              <p className="pl-4 sm:pl-6 opacity-90">
+                我喜歡吃...{' '}
+                <span
+                  onClick={() => {
+                    setPreviousView('doc_01_te_67');
+                    setCurrentView('letter_shiminaseo');
+                  }}
+                  className={`inline-block font-bold cursor-pointer transition-colors underline decoration-dotted underline-offset-4 ${
+                    isDark
+                      ? 'text-[#fef08a] hover:text-[#fffbeb]'
+                      : 'text-[#854d0e] bg-[#fef9c3] px-1 border border-[#facc15]/60 hover:bg-[#fef08a]'
+                  }`}
+                  title="可調查物件：點擊或輸入 inspect_sh 進行互動"
+                >
+                  尸米那誰喔 (<span className="italic">Shiminaseo</span>)
+                </span>
+                {' '}(? www 
+              </p>
+              <p className="pl-4 sm:pl-6 opacity-90">
+                嘿嘿嘿 以下是我的美照 (❁´◡`❁)
+              </p>
+
+              {/* 苡萱醬美照展示 */}
+              <div className="pt-4 pl-4 sm:pl-6">
+                <div
+                  className={`inline-block p-2 border-2 ${
+                    isDark ? 'border-white/60 bg-white/5' : 'border-black/60 bg-black/5'
+                  }`}
+                >
+                  <img
+                    src="/assets/aistudio/image_5a5fbb91.png"
+                    alt="苡萱醬的美照"
+                    className="max-w-[260px] sm:max-w-[320px] w-full h-auto object-contain block select-none"
+                    loading="lazy"
+                  />
+                  <div className="pt-2 text-[10px] sm:text-xs opacity-60 text-center tracking-wider font-mono">
+                    [ 苡萱醬的美照 (❁´◡`❁) ]
+                  </div>
+                </div>
+              </div>
+
+              {/* 杜杜醬 (7) 區塊 */}
+              <div className="pt-6 space-y-3.5 border-t border-dashed opacity-95">
+                <p>
+                  <span
+                    className={`inline-block font-bold ${
+                      isDark ? 'text-[#7dd3fc]' : 'text-[#1d4ed8]'
+                    }`}
+                  >
+                    {name7}
+                  </span>
+                  ：大家好~ 我是杜杜醬~ (•ˋ _ ˊ•)
+                </p>
+                <p className="pl-4 sm:pl-6 opacity-90">
+                  我是過來湊數的 ￣へ￣
+                </p>
+                <p className="pl-4 sm:pl-6 opacity-90">
+                  因為咪喵醬希望路徑最後有 67 (?
+                </p>
+
+                {/* 杜杜醬照片展示 */}
+                <div className="pt-3 pl-4 sm:pl-6">
+                  <div
+                    className={`inline-block p-2 border-2 ${
+                      isDark ? 'border-white/60 bg-white/5' : 'border-black/60 bg-black/5'
+                    }`}
+                  >
+                    <img
+                      src="/assets/aistudio/image_fd2bab39.png"
+                      alt="杜杜醬的美照"
+                      className="max-w-[200px] sm:max-w-[240px] w-full h-auto object-contain block select-none"
+                      loading="lazy"
+                    />
+                    <div className="pt-2 text-[10px] sm:text-xs opacity-60 text-center tracking-wider font-mono">
+                      [ 杜杜醬 (•ˋ _ ˊ•) ]
+                    </div>
+                  </div>
+                </div>
+
+                {/* 結尾 list 指令框框提示 (純文字 highlight 框框，無超連結) */}
+                <p className="pt-4 opacity-90">
+                  喔對了.... 可以使用 <code className={`font-bold px-1.5 py-0.5 border mx-0.5 inline-block ${isDark ? 'border-white text-white' : 'border-black text-black'}`}>list</code> 能看到有點過的路徑喔
+                </p>
+              </div>
             </div>
 
             {/* Bottom Letter Footer / Divider */}
