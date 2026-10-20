@@ -266,40 +266,49 @@ const startRain = () => {
 
 
   const playThreeKnocks = (): Promise<void> => {
-  const originalKnock = knockAudioRef.current;
+    const originalKnock = knockAudioRef.current;
 
-  if (!originalKnock) {
-    console.error('[音效] 找不到敲門音效');
-    return Promise.resolve();
-  }
+    if (!originalKnock) {
+      console.error('[音效] 找不到敲門音效');
+      return Promise.resolve();
+    }
 
-  // 清除上一次尚未執行的敲門計時器
-  knockTimersRef.current.forEach(clearTimeout);
-  knockTimersRef.current = [];
+    knockTimersRef.current.forEach(clearTimeout);
+    knockTimersRef.current = [];
 
-  // 三下敲門，每下間隔 2 秒；等待第三下音效播完才繼續
-  return new Promise((resolve) => {
-    [0, 2000, 4000].forEach((delay, index) => {
-      const timer = setTimeout(() => {
-        const knock = originalKnock.cloneNode(true) as HTMLAudioElement;
-        knock.volume = originalKnock.volume;
-        knock.currentTime = 0;
+    return new Promise((resolve) => {
+      let finished = false;
+      // 防止瀏覽器未觸發 ended 時，後續腳步與開門音效永遠不播放
+      const fallbackTimer = setTimeout(finish, 12000);
+      function finish() {
+        if (finished) return;
+        finished = true;
+        clearTimeout(fallbackTimer);
+        resolve();
+      }
 
-        if (index === 2) {
-          knock.addEventListener('ended', () => resolve(), { once: true });
-        }
+      [0, 2000, 4000].forEach((delay, index) => {
+        const timer = setTimeout(() => {
+          const knock = originalKnock.cloneNode(true) as HTMLAudioElement;
+          knock.volume = originalKnock.volume;
+          knock.currentTime = 0;
 
-        console.log(`[音效] 播放第 ${index + 1} 下敲門`, knock.src);
-        void knock.play().catch((error) => {
-          console.error(`[音效] 第 ${index + 1} 下播放失敗`, error);
-          if (index === 2) resolve();
-        });
-      }, delay);
+          if (index === 2) {
+            knock.addEventListener('ended', finish, { once: true });
+            knock.addEventListener('error', finish, { once: true });
+          }
 
-      knockTimersRef.current.push(timer);
+          console.log(`[音效] 播放第 ${index + 1} 下敲門`, knock.src);
+          void knock.play().catch((error) => {
+            console.error(`[音效] 第 ${index + 1} 下播放失敗`, error);
+            if (index === 2) finish();
+          });
+        }, delay);
+
+        knockTimersRef.current.push(timer);
+      });
     });
-  });
-};
+  };
 
 /** 播放木門開啟聲：可在其他解謎事件重複使用 */
 const playDoorOpen = () => {
@@ -321,14 +330,34 @@ const playFootsteps = (): Promise<void> => {
     );
 
     sound.volume = 0.55;
-    sound.addEventListener('ended', () => resolve(), { once: true });
-    sound.addEventListener(
-      'error',
-      () => reject(new Error('腳步音效載入失敗')),
-      { once: true }
-    );
+    let finished = false;
+    let fallbackTimer: ReturnType<typeof setTimeout> | undefined;
 
-    void sound.play().catch(reject);
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      if (fallbackTimer) clearTimeout(fallbackTimer);
+      resolve();
+    };
+
+    sound.addEventListener('ended', finish, { once: true });
+    sound.addEventListener('error', () => {
+      if (finished) return;
+      finished = true;
+      if (fallbackTimer) clearTimeout(fallbackTimer);
+      reject(new Error('腳步音效載入失敗，請確認 assets/audio/footsteps.mp3 路徑'));
+    }, { once: true });
+    sound.addEventListener('loadedmetadata', () => {
+      if (Number.isFinite(sound.duration) && sound.duration > 0) {
+        // 若瀏覽器漏掉 ended 事件，最多在音檔長度加 2 秒後繼續
+        fallbackTimer = setTimeout(finish, (sound.duration + 2) * 1000);
+      }
+    }, { once: true });
+
+    void sound.play().catch((error) => {
+      if (fallbackTimer) clearTimeout(fallbackTimer);
+      reject(error);
+    });
   });
 };
 
