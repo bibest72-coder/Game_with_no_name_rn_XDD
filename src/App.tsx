@@ -56,8 +56,8 @@ const CHAR_DELAY = 120; // 舒適且沉浸的無聲打字速度
 // 照片路徑對應：使用朋友提供的 SVG 檔案
 const getPhotoSrc = (img: string): string => {
   const photoMap: Record<string, string> = {
-    'image_5a5fbb91.png': '/assets/aistudio/42442.jpg',
-    'image_fd2bab39.png': '/assets/aistudio/200w.gif',
+    '42442.jpg': '/assets/aistudio/42442.jpg',
+    '200w.gif': '/assets/aistudio/200w.gif',
   };
 
   const src = photoMap[img] ?? '/assets/aistudio/42442.jpg';
@@ -1221,7 +1221,7 @@ const startRain = () => {
                   }`}
                 >
                   <img
-                    src={getPhotoSrc('image_5a5fbb91.png')}
+                    src={getPhotoSrc('42442.jpg')}
                     alt="苡萱醬的美照"
                     className="max-w-[260px] sm:max-w-[320px] w-full h-auto object-contain block select-none"
                     loading="lazy"
@@ -1259,7 +1259,7 @@ const startRain = () => {
                     }`}
                   >
                     <img
-                      src={getPhotoSrc('image_fd2bab39.png')}
+                      src={getPhotoSrc('200w.gif')}
                       alt="杜杜醬的美照"
                       className="max-w-[200px] sm:max-w-[240px] w-full h-auto object-contain block select-none"
                       loading="lazy"
