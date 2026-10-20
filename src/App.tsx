@@ -252,6 +252,8 @@ const playThreeKnocks = () => {
 
   // 全域點擊事件
   const handleGlobalClick = () => {
+    startRain();
+    
     if (introPhase !== 'completed') {
       skipIntro();
       return;
@@ -464,6 +466,7 @@ const playThreeKnocks = () => {
   // Terminal command submission handler
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    startRain();
     processCommand(inputValue);
     setInputValue('');
   };
@@ -471,6 +474,7 @@ const playThreeKnocks = () => {
   // Mini input bar handler (目錄頁面小輸入欄)
   const handleMiniSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    startRain();
     processCommand(miniInputValue);
     setMiniInputValue('');
   };
