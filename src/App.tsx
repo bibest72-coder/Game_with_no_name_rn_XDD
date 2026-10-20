@@ -375,6 +375,7 @@ const startRain = () => {
     const page = document.querySelector<HTMLElement>('.readme-page');
     page?.classList.add('readme-typing-active');
     let finishTyping: (() => void) | null = null;
+    let fastForwardRequested = false;
     // 等信紙外框完整展開後，才開始逐字顯示內容。
     const beginTimer = setTimeout(() => {
       const content = document.querySelector<HTMLElement>('.readme-letter-content');
@@ -431,6 +432,12 @@ const startRain = () => {
         page?.classList.remove('readme-typing-active');
       };
       finishTyping = finish;
+      if (fastForwardRequested) {
+  finish();
+  typewriterTimersRef.current.forEach(clearTimeout);
+  typewriterTimersRef.current = [];
+  return;
+}
 
       let elapsed = 0;
       let lastParagraph: Element | null = null;
@@ -455,30 +462,25 @@ const startRain = () => {
 
     const onFastForward = (event: KeyboardEvent) => {
       if ((event.key === 'Enter' || event.code === 'Space' || event.key === ' ') && !finished) {
-        event.preventDefault();
-        if (finishTyping) {
-          finishTyping();
-        } else {
-          // 快轉發生在信紙外框動畫期間、逐字程序尚未建立時：直接完成整頁，避免清掉唯一的開始計時器後卡住。
-          finished = true;
-          const content = document.querySelector<HTMLElement>('.readme-letter-content');
-          if (content) content.style.visibility = 'visible';
-          document.querySelector<HTMLElement>('.readme-title-hidden')?.classList.replace('readme-title-hidden', 'readme-title-visible');
-          document.querySelectorAll<HTMLElement>('.readme-command-frame').forEach((frame) => {
-            frame.classList.remove('readme-command-disabled');
-            frame.classList.add('readme-frame-draw');
-          });
-          document.querySelector<HTMLElement>('.readme-footer-hidden')?.classList.remove('readme-footer-hidden');
-          document.querySelectorAll<HTMLElement>('.readme-border-top, .readme-border-left, .readme-border-right, .readme-border-bottom').forEach((line) => {
-            line.style.animation = 'none';
-            line.style.transform = 'none';
-          });
-          page?.classList.remove('readme-typing-active');
-        }
-        typewriterTimersRef.current.forEach(clearTimeout);
-        typewriterTimersRef.current = [];
-      }
-    };
+      
+const onFastForward = (event: KeyboardEvent) => {
+  if (
+    (event.key === 'Enter' ||
+      event.code === 'Space' ||
+      event.key === ' ') &&
+    !finished
+  ) {
+    event.preventDefault();
+    fastForwardRequested = true;
+
+    if (finishTyping) {
+      finishTyping();
+      typewriterTimersRef.current.forEach(clearTimeout);
+      typewriterTimersRef.current = [];
+    }
+  }
+};
+
     window.addEventListener('keydown', onFastForward);
     return () => {
       cancelled = true;
