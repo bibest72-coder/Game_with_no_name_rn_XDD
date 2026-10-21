@@ -64,17 +64,37 @@ const getPhotoSrc = (img: string): string => {
   return src;
 };
 
+const RESET_STORAGE_KEYS = [
+  'cli_folder_names',
+  'cli_unlocked_letters',
+  'cli_user_name',
+  'cli_user_name_v2',
+  'cli_name_6',
+  'cli_name_7',
+  'cli_used_names',
+  'game_fresh_start_play_v1',
+];
+
 export default function App() {
-  // 一次性重置遊戲至純淨初始狀態 (立即清除先前的所有暫存與記錄，開始全新遊玩)
-  if (typeof window !== 'undefined') {
-    try {
-      const resetKey = 'game_fresh_start_play_v1';
-      if (!localStorage.getItem(resetKey)) {
-        localStorage.clear();
-        localStorage.setItem(resetKey, 'true');
-      }
-    } catch {}
-  }
+  const resetGameState = () => {
+    if (typeof window === 'undefined') return;
+
+    RESET_STORAGE_KEYS.forEach((key) => {
+      localStorage.removeItem(key);
+    });
+
+    setFolderCustomNames({});
+    setUnlockedLetters([]);
+    setUserName('User');
+    setName6('6');
+    setName7('7');
+    setUsedNames(['User', '6', '7']);
+    setCurrentView('terminal');
+    setPreviousView('terminal');
+    setHintMessage(null);
+    setInputValue('');
+    setMiniInputValue('');
+  };
 
   const [theme, setTheme] = useState<ThemeMode>('black');
   const [currentView, setCurrentView] = useState<ViewMode>('terminal');
@@ -681,6 +701,9 @@ const onFastForward = (event: KeyboardEvent) => {
       setPreviousView(currentView === 'list' ? previousView : currentView);
       setCurrentView('list');
       setHintMessage(null);
+    } else if (cmd === 'reset') {
+      resetGameState();
+      setHintMessage('遊戲已回到初始狀態。');
     } else if (cmd === 'exit' || cmd === 'back') {
       setCurrentView('terminal');
       setHintMessage(null);
@@ -718,8 +741,8 @@ const onFastForward = (event: KeyboardEvent) => {
       if (parts.length < 2 || !parts[0] || !parts[1]) {
         setHintMessage(`格式錯誤。格式為: tittle <原本的名字> <要換的名字>`);
       } else {
-        const cleanSpecified = parts[0].replace(/^["']|["']$/g, '');
-        const cleanNewName = parts.slice(1).join(' ').trim().replace(/^["']|["']$/g, '');
+        const cleanSpecified = parts[0].replace(/^['"]|['"]$/g, '');
+        const cleanNewName = parts.slice(1).join(' ').trim().replace(/^['"]|['"]$/g, '');
 
         if (!cleanNewName) {
           setHintMessage(`格式錯誤。格式為: tittle <原本的名字> <要換的名字>`);
@@ -764,8 +787,8 @@ const onFastForward = (event: KeyboardEvent) => {
       if (parts.length < 2 || !parts[0] || !parts[1]) {
         setHintMessage(`格式錯誤。格式為: 6 <原本的名字> <要換的名字> (目前名稱: "${name6}")`);
       } else {
-        const cleanSpecified = parts[0].replace(/^["']|["']$/g, '').trim();
-        const cleanNewName = parts.slice(1).join(' ').trim().replace(/^["']|["']$/g, '');
+        const cleanSpecified = parts[0].replace(/^['"]|['"]$/g, '').trim();
+        const cleanNewName = parts.slice(1).join(' ').trim().replace(/^['"]|['"]$/g, '');
 
         if (!cleanNewName) {
           setHintMessage(`格式錯誤。格式為: 6 <原本的名字> <要換的名字>`);
@@ -796,8 +819,8 @@ const onFastForward = (event: KeyboardEvent) => {
       if (parts.length < 2 || !parts[0] || !parts[1]) {
         setHintMessage(`格式錯誤。格式為: 7 <原本的名字> <要換的名字> (目前名稱: "${name7}")`);
       } else {
-        const cleanSpecified = parts[0].replace(/^["']|["']$/g, '').trim();
-        const cleanNewName = parts.slice(1).join(' ').trim().replace(/^["']|["']$/g, '');
+        const cleanSpecified = parts[0].replace(/^['"]|['"]$/g, '').trim();
+        const cleanNewName = parts.slice(1).join(' ').trim().replace(/^['"]|['"]$/g, '');
 
         if (!cleanNewName) {
           setHintMessage(`格式錯誤。格式為: 7 <原本的名字> <要換的名字>`);
@@ -828,8 +851,8 @@ const onFastForward = (event: KeyboardEvent) => {
       if (parts.length < 2 || !parts[0] || !parts[1]) {
         setHintMessage(`格式錯誤。格式為: name <原本的名字> <要換的名字>`);
       } else {
-        const cleanSpecified = parts[0].replace(/^["']|["']$/g, '').trim();
-        const cleanNewName = parts.slice(1).join(' ').trim().replace(/^["']|["']$/g, '');
+        const cleanSpecified = parts[0].replace(/^['"]|['"]$/g, '').trim();
+        const cleanNewName = parts.slice(1).join(' ').trim().replace(/^['"]|['"]$/g, '');
 
         if (!cleanNewName) {
           setHintMessage(`格式錯誤。格式為: name <原本的名字> <要換的名字>`);
@@ -937,7 +960,7 @@ const onFastForward = (event: KeyboardEvent) => {
         .readme-footer-hidden { visibility: hidden; }
         .readme-command-frame { border-color: transparent !important; outline: none !important; position: relative; }
         .readme-command-frame:not(.readme-frame-draw) { box-shadow: none !important; }
-        .readme-command-frame.readme-frame-draw::before { content: ""; position: absolute; inset: -2px; border: 1px solid currentColor; pointer-events: none; animation: readmeCommandFrameDraw .55s ease-out both; }
+        .readme-command-frame.readme-frame-draw::before { content: ""; position: absolute; inset: -2px; border: 1px solid currentColor; pointer-events: none; animation: readmeCommandFrameDraw .55s eas[...]
         @keyframes readmeCommandFrameDraw { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
         .readme-command-frame.readme-command-disabled { pointer-events: none !important; cursor: default !important; opacity: .72; }
         .readme-title-hidden { visibility: hidden; }
@@ -946,7 +969,7 @@ const onFastForward = (event: KeyboardEvent) => {
         .readme-border-top { position:absolute; top:-2px; left:-2px; right:-2px; height:2px; transform:scaleX(0); transform-origin:left center; animation:readmeTopDraw .65s linear .15s forwards; }
         .readme-border-left { position:absolute; top:-2px; bottom:-2px; left:-2px; width:2px; transform:scaleY(0); transform-origin:top center; animation:readmeSideDraw .85s ease-out .8s forwards; }
         .readme-border-right { position:absolute; top:-2px; bottom:-2px; right:-2px; width:2px; transform:scaleY(0); transform-origin:top center; animation:readmeSideDraw .85s ease-out .8s forwards; }
-        .readme-border-bottom { position:absolute; bottom:-2px; left:-2px; right:-2px; height:2px; transform:scaleX(0); transform-origin:left center; animation:readmeBottomDraw .55s linear 1.7s forwards; }
+        .readme-border-bottom { position:absolute; bottom:-2px; left:-2px; right:-2px; height:2px; transform:scaleX(0); transform-origin:left center; animation:readmeBottomDraw .55s linear 1.7s forwar[...]
         @media (prefers-reduced-motion: reduce) {
           .readme-border-top, .readme-border-left, .readme-border-right, .readme-border-bottom { animation:none !important; transform:none !important; }
         }
@@ -1133,19 +1156,19 @@ const onFastForward = (event: KeyboardEvent) => {
               </p>
 
               <p>
-                用 <code className="readme-command-frame font-bold px-1.5 py-0.5 border mx-0.5 inline-block">theme</code> 或 <code className="readme-command-frame font-bold px-1.5 py-0.5 border mx-0.5 inline-block">toggle</code> 就能自由切換黑白畫面 
+                用 <code className="readme-command-frame font-bold px-1.5 py-0.5 border mx-0.5 inline-block">theme</code> 或 <code className="readme-command-frame font-bold px-1.5 py-0.5 border mx-0[...]
               </p>
 
               <p>
-                如果出現 <span className={`font-bold inline-block ${isDark ? 'text-[#fef08a]' : 'text-[#854d0e] bg-[#fef9c3] px-1 border border-[#facc15]/60'}`}>黃色</span> 的字體時，點下去後會有有趣的事情發生喔 （*＾-＾*）
+                如果出現 <span className={`font-bold inline-block ${isDark ? 'text-[#fef08a]' : 'text-[#854d0e] bg-[#fef9c3] px-1 border border-[#facc15]/60'}`}>黃色</span> 的字體時，點下[...]
               </p>
 
               <p className="pt-1">
-                迷路時也別擔心，按一下 <kbd className="readme-command-frame font-bold px-1.5 py-0.5 border mx-0.5 inline-block">Esc</kbd> 就能一秒回到輸入欄啦 (๑•̀ㅂ•́)و✧
+                迷路時也別擔心，按一下 <kbd className="readme-command-frame font-bold px-1.5 py-0.5 border mx-0.5 inline-block">Esc</kbd> 就能一秒回到輸入欄啦 (๑•̀ㅂ•́)و[...]
               </p>
 
               <p className="pt-2">
-                OK 那麼親愛的 <strong className="font-bold">{userName}</strong> 歡迎來到我們創造的世界、聽一個有趣故事 <code className="readme-command-frame readme-command-disabled font-bold px-1.5 py-0.5 border mx-0.5 inline-block cursor-pointer hover:opacity-80" onClick={() => setCurrentView('doc_01_gr_1')} title="點擊或輸入 01_GR_1 前往">01_GR_1</code>
+                OK 那麼親愛的 <strong className="font-bold">{userName}</strong> 歡迎來到我們創造的世界、聽一個有趣故事 <code className="readme-command-frame readme-command-disa[...]
               </p>
             </div>
 
@@ -1241,7 +1264,7 @@ const onFastForward = (event: KeyboardEvent) => {
               <p>狂風裹挾著暴雨，像無數細針砸在視線裡。</p>
               <p>雨水順著我的額頭滑進眼睛，刺得發痛。</p>
               <p>
-                獨自走在幾乎要被黑暗吞噬的 <strong className="font-bold">綠嶺小徑</strong>（<strong className="font-bold italic">Green Summit Way</strong>）時，我隱約看見前方出現了一座隱匿在大樹後方的木造建築。
+                獨自走在幾乎要被黑暗吞噬的 <strong className="font-bold">綠嶺小徑</strong>（<strong className="font-bold italic">Green Summit Way</strong>）時，我隱約看見前�[...]
               </p>
               <p>
                 門口掛著一盞搖搖欲墜的油燈，映出四個字 ——「
@@ -1552,7 +1575,7 @@ const onFastForward = (event: KeyboardEvent) => {
 
                 {/* 結尾 list 指令框框提示 (純文字 highlight 框框，無超連結) */}
                 <p className="pt-4 opacity-90">
-                  喔對了.... 可以使用 <code className={`font-bold px-1.5 py-0.5 border mx-0.5 inline-block ${isDark ? 'border-white text-white' : 'border-black text-black'}`}>list</code> 能看到有點過的路徑喔
+                  喔對了.... 可以使用 <code className={`font-bold px-1.5 py-0.5 border mx-0.5 inline-block ${isDark ? 'border-white text-white' : 'border-black text-black'}`}>list</code> 能看[...]
                 </p>
               </div>
             </div>
