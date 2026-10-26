@@ -1561,8 +1561,10 @@ const playDoorSequence = async () => {
       {/* VIEW 6: Pure Black Directory / Log View (純黑無框資料夾目錄) */}
       {currentView === 'list' && (
         <div 
-          className="w-full min-h-screen bg-black text-white p-6 sm:p-12 font-mono flex flex-col items-start select-none animate-fadeIn"
-          onClick={(e) => e.stopPropagation()}
+          className={`w-full min-h-screen p-6 sm:p-12 font-mono flex flex-col items-start select-none animate-fadeIn ${
+                isDark ? 'bg-black text-white' : 'bg-white text-black'
+                     }`}
+             onClick={(e) => e.stopPropagation()}
         >
           {/* Top Bar: Return Button & Mini Command Input */}
           <div className="w-full max-w-lg mb-8 space-y-3">
