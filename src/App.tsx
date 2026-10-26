@@ -952,7 +952,7 @@ const playDoorSequence = async () => {
       isDark ? 'theme-dark bg-black text-white' : 'theme-light bg-white text-black'
       }`}
     >
-      {/* Top-Right Theme Switch Button (在全黑 list 介面隱藏) */}
+      {/* 哪裡都有我謝謝 QQ */}
          <button
           type="button"
           onClick={(e) => {
