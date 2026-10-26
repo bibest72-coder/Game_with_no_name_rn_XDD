@@ -2,7 +2,7 @@ name: Deploy Vite app to GitHub Pages
 
 on:
   push:
-    branches: [test_here_plzzz_傻逼們]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
