@@ -953,8 +953,7 @@ const playDoorSequence = async () => {
       }`}
     >
       {/* Top-Right Theme Switch Button (在全黑 list 介面隱藏) */}
-      {currentView !== 'list' && (
-        <button
+         <button
           type="button"
           onClick={(e) => {
             e.stopPropagation();
@@ -969,7 +968,6 @@ const playDoorSequence = async () => {
         >
           {isDark ? '[ SWITCH TO WHITE ]' : '[ SWITCH TO BLACK ]'}
         </button>
-      )}
 
       {/* VIEW 1: Terminal / Input Bar View */}
       {currentView === 'terminal' && (
