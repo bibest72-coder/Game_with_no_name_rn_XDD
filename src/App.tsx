@@ -949,7 +949,7 @@ const playDoorSequence = async () => {
     <div
       onClick={handleGlobalClick}
       className={`min-h-screen w-full flex flex-col items-center justify-start font-mono select-none theme-transition cursor-text ${
-        currentView === 'list' || isDark ? 'theme-dark bg-black text-white' : 'theme-light bg-white text-black'
+      isDark ? 'theme-dark bg-black text-white' : 'theme-light bg-white text-black'
       }`}
     >
       {/* Top-Right Theme Switch Button (在全黑 list 介面隱藏) */}
