@@ -83,6 +83,7 @@ export default function App() {
   const [miniInputValue, setMiniInputValue] = useState('');
   const [hintMessage, setHintMessage] = useState<string | null>(null);
 
+
   // 自訂資料夾名稱 (可透過 tittle 指令更改並持久化儲存)
   const [folderCustomNames, setFolderCustomNames] = useState<Record<string, string>>(() => {
     try {
@@ -193,83 +194,76 @@ export default function App() {
     return ['User', '6', '7'];
   });
 
-  const isNameUsedByAnotherRole = (candidate: string, currentRoleName: string) => {
-    const cleaned = candidate.trim();
-    if (!cleaned) return false;
-    return [userName, name6, name7]
-      .filter(name => !!name && name.toLowerCase() !== currentRoleName.toLowerCase())
-      .some(name => name.toLowerCase() === cleaned.toLowerCase());
-  };
-
   // Entrance typewriter lifecycle: typing -> hold -> fade_out -> blank -> completed
   const [introPhase, setIntroPhase] = useState<IntroPhase>('typing');
   const [displayedText, setDisplayedText] = useState('');
   const [showInput, setShowInput] = useState(false);
-
+  
   const inputRef = useRef<HTMLInputElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // 音效：雨聲與三下敲門
-  const rainAudioRef = useRef<HTMLAudioElement | null>(null);
-  const knockAudioRef = useRef<HTMLAudioElement | null>(null);
-  const knockTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const typewriterAudioContextRef = useRef<AudioContext | null>(null);
-  const typewriterTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+const rainAudioRef = useRef<HTMLAudioElement | null>(null);
+const knockAudioRef = useRef<HTMLAudioElement | null>(null);
+const knockTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+const typewriterAudioContextRef = useRef<AudioContext | null>(null);
+const typewriterTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
-  // 以瀏覽器合成短促的按鍵聲，不需要額外音效檔
-  const playTypewriterKey = () => {
-    try {
-      const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-      if (!AudioContextClass) return;
-      const context = typewriterAudioContextRef.current ?? new AudioContextClass();
-      typewriterAudioContextRef.current = context;
-      if (context.state === 'suspended') void context.resume();
-      const oscillator = context.createOscillator();
-      const gain = context.createGain();
-      oscillator.type = 'square';
-      oscillator.frequency.setValueAtTime(1050 + Math.random() * 250, context.currentTime);
-      gain.gain.setValueAtTime(0.0001, context.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.035, context.currentTime + 0.003);
-      gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.025);
-      oscillator.connect(gain);
-      gain.connect(context.destination);
-      oscillator.start(context.currentTime);
-      oscillator.stop(context.currentTime + 0.028);
-    } catch {
-      // 若瀏覽器不支援音效，仍正常播放打字動畫
-    }
+// 以瀏覽器合成短促的按鍵聲，不需要額外音效檔
+const playTypewriterKey = () => {
+  try {
+    const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const context = typewriterAudioContextRef.current ?? new AudioContextClass();
+    typewriterAudioContextRef.current = context;
+    if (context.state === 'suspended') void context.resume();
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    oscillator.type = 'square';
+    oscillator.frequency.setValueAtTime(1050 + Math.random() * 250, context.currentTime);
+    gain.gain.setValueAtTime(0.0001, context.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.035, context.currentTime + 0.003);
+    gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.025);
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.start(context.currentTime);
+    oscillator.stop(context.currentTime + 0.028);
+  } catch {
+    // 若瀏覽器不支援音效，仍正常播放打字動畫
+  }
+};
+
+useEffect(() => {
+  const base = import.meta.env.BASE_URL;
+
+  const rain = new Audio(`${base}assets/audio/rain.mp3`);
+  rain.loop = true;
+  rain.volume = 0.6;
+  rain.preload = 'auto';
+
+  const knock = new Audio(`${base}assets/audio/knock.wav`);
+  knock.volume = 0.8;
+  knock.preload = 'auto';
+
+  rainAudioRef.current = rain;
+  knockAudioRef.current = knock;
+
+  return () => {
+    rain.pause();
+    knock.pause();
+    knockTimersRef.current.forEach(clearTimeout);
   };
+}, []);
 
-  useEffect(() => {
-    const base = import.meta.env.BASE_URL;
+const startRain = () => {
+  const rain = rainAudioRef.current;
+  if (rain && rain.paused) {
+    void rain.play().catch(() => {
+      // 瀏覽器可能禁止尚未經使用者操作的自動播放
+    });
+  }
+};
 
-    const rain = new Audio(`${base}assets/audio/rain.mp3`);
-    rain.loop = true;
-    rain.volume = 0.6;
-    rain.preload = 'auto';
-
-    const knock = new Audio(`${base}assets/audio/knock.wav`);
-    knock.volume = 0.8;
-    knock.preload = 'auto';
-
-    rainAudioRef.current = rain;
-    knockAudioRef.current = knock;
-
-    return () => {
-      rain.pause();
-      knock.pause();
-      knockTimersRef.current.forEach(clearTimeout);
-    };
-  }, []);
-
-  const startRain = () => {
-    const rain = rainAudioRef.current;
-    if (rain && rain.paused) {
-      void rain.play().catch(() => {
-        // 瀏覽器可能禁止尚未經使用者操作的自動播放
-      });
-    }
-  };
 
   const playThreeKnocks = (): Promise<void> => {
     const originalKnock = knockAudioRef.current;
@@ -284,6 +278,7 @@ export default function App() {
 
     return new Promise((resolve) => {
       let finished = false;
+      // 防止瀏覽器未觸發 ended 時，後續腳步與開門音效永遠不播放
       const fallbackTimer = setTimeout(finish, 12000);
       function finish() {
         if (finished) return;
@@ -315,68 +310,78 @@ export default function App() {
     });
   };
 
-  /** 播放木門開啟聲：可在其他解謎事件重複使用 */
-  const playDoorOpen = () => {
+/** 播放木門開啟聲：可在其他解謎事件重複使用 */
+const playDoorOpen = () => {
+  const sound = new Audio(
+    `${import.meta.env.BASE_URL}assets/audio/door-creak.wav`
+  );
+
+  sound.volume = 0.7;
+  void sound.play().catch((error) => {
+    console.error('[音效] 木門開啟聲播放失敗：', error);
+  });
+};
+
+/** 播放拖沓腳步聲，等待音檔完整播放完畢 */
+const playFootsteps = (): Promise<void> => {
+  return new Promise((resolve, reject) => {
     const sound = new Audio(
-      `${import.meta.env.BASE_URL}assets/audio/door-creak.wav`
+      `${import.meta.env.BASE_URL}assets/audio/footsteps.mp3`
     );
 
-    sound.volume = 0.7;
+    sound.volume = 0.55;
+    let finished = false;
+    let fallbackTimer: ReturnType<typeof setTimeout> | undefined;
+
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      if (fallbackTimer) clearTimeout(fallbackTimer);
+      resolve();
+    };
+
+    sound.addEventListener('ended', finish, { once: true });
+    sound.addEventListener('error', () => {
+      if (finished) return;
+      finished = true;
+      if (fallbackTimer) clearTimeout(fallbackTimer);
+      reject(new Error('腳步音效載入失敗，請確認 assets/audio/footsteps.mp3 路徑'));
+    }, { once: true });
+    sound.addEventListener('loadedmetadata', () => {
+      if (Number.isFinite(sound.duration) && sound.duration > 0) {
+        // 若瀏覽器漏掉 ended 事件，最多在音檔長度加 2 秒後繼續
+        fallbackTimer = setTimeout(finish, (sound.duration + 2) * 1000);
+      }
+    }, { once: true });
+
     void sound.play().catch((error) => {
-      console.error('[音效] 木門開啟聲播放失敗：', error);
+      if (fallbackTimer) clearTimeout(fallbackTimer);
+      reject(error);
     });
-  };
+  });
+};
 
-  /** 播放拖沓腳步聲，等待音檔完整播放完畢 */
-  const playFootsteps = (): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      const sound = new Audio(
-        `${import.meta.env.BASE_URL}assets/audio/footsteps.mp3`
-      );
+/** 開場音效順序：三下敲門 → 等 4 秒 → 腳步 → 等 1 秒 → 開門 */
+const playDoorSequence = async () => {
+  try {
+    // 播放三下敲門，並等待第三下完整結束
+    await playThreeKnocks();
 
-      sound.volume = 0.55;
-      let finished = false;
-      let fallbackTimer: ReturnType<typeof setTimeout> | undefined;
+    // 最後一下敲門結束後，再等待 4 秒
+    await new Promise<void>((resolve) => setTimeout(resolve, 4000));
 
-      const finish = () => {
-        if (finished) return;
-        finished = true;
-        if (fallbackTimer) clearTimeout(fallbackTimer);
-        resolve();
-      };
+    // 播放腳步聲，並等待音檔完整播放完畢
+    await playFootsteps();
 
-      sound.addEventListener('ended', finish, { once: true });
-      sound.addEventListener('error', () => {
-        if (finished) return;
-        finished = true;
-        if (fallbackTimer) clearTimeout(fallbackTimer);
-        reject(new Error('腳步音效載入失敗，請確認 assets/audio/footsteps.mp3 路徑'));
-      }, { once: true });
-      sound.addEventListener('loadedmetadata', () => {
-        if (Number.isFinite(sound.duration) && sound.duration > 0) {
-          fallbackTimer = setTimeout(finish, (sound.duration + 2) * 1000);
-        }
-      }, { once: true });
+    // 腳步完整結束後再安靜 1 秒
+    await new Promise<void>((resolve) => setTimeout(resolve, 1000));
 
-      void sound.play().catch((error) => {
-        if (fallbackTimer) clearTimeout(fallbackTimer);
-        reject(error);
-      });
-    });
-  };
-
-  /** 開場音效順序：三下敲門 → 等 4 秒 → 腳步 → 等 1 秒 → 開門 */
-  const playDoorSequence = async () => {
-    try {
-      await playThreeKnocks();
-      await new Promise<void>((resolve) => setTimeout(resolve, 4000));
-      await playFootsteps();
-      await new Promise<void>((resolve) => setTimeout(resolve, 1000));
-      playDoorOpen();
-    } catch (error) {
-      console.error('[音效] 故事音效播放失敗：', error);
-    }
-  };
+    // 最後播放木門開啟聲
+    playDoorOpen();
+  } catch (error) {
+    console.error('[音效] 故事音效播放失敗：', error);
+  }
+};
 
   // Skip / fast-forward intro
   const skipIntro = () => {
@@ -400,12 +405,16 @@ export default function App() {
         setDisplayedText(INTRO_TEXT.slice(0, charIndex));
         timeoutRef.current = setTimeout(typeNextChar, CHAR_DELAY);
       } else {
+        // 1. 打字結束，停留讓使用者沉浸閱讀 (約 1.2 秒)
         setIntroPhase('hold');
         timeoutRef.current = setTimeout(() => {
+          // 2. 文字開始緩緩淡出消失 (慢速漸隱，耗時 1.2 秒)
           setIntroPhase('fade_out');
           timeoutRef.current = setTimeout(() => {
+            // 3. 留白時間 (完全空白屏息，約 0.65 秒)
             setIntroPhase('blank');
             timeoutRef.current = setTimeout(() => {
+              // 4. 輸入欄再緩緩淡入浮現 (1.2 秒平滑浮現)
               setIntroPhase('completed');
               setShowInput(true);
             }, 650);
@@ -414,6 +423,7 @@ export default function App() {
       }
     };
 
+    // 稍候 350ms 後開始流暢打字
     timeoutRef.current = setTimeout(typeNextChar, 350);
   };
 
@@ -424,6 +434,7 @@ export default function App() {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, []);
+
 
   // 只有進入 01_GR_1 時播放雨聲與三下敲門；離開時停止並清除待播放的敲門
   useEffect(() => {
@@ -453,6 +464,7 @@ export default function App() {
     page?.classList.add('readme-typing-active');
     let finishTyping: (() => void) | null = null;
     let fastForwardRequested = false;
+    // 等信紙外框完整展開後，才開始逐字顯示內容。
     const beginTimer = setTimeout(() => {
       const content = document.querySelector<HTMLElement>('.readme-letter-content');
       const title = document.querySelector<HTMLElement>('.readme-title-hidden');
@@ -509,11 +521,11 @@ export default function App() {
       };
       finishTyping = finish;
       if (fastForwardRequested) {
-        finish();
-        typewriterTimersRef.current.forEach(clearTimeout);
-        typewriterTimersRef.current = [];
-        return;
-      }
+  finish();
+  typewriterTimersRef.current.forEach(clearTimeout);
+  typewriterTimersRef.current = [];
+  return;
+}
 
       let elapsed = 0;
       let lastParagraph: Element | null = null;
@@ -537,7 +549,10 @@ export default function App() {
     typewriterTimersRef.current.push(beginTimer);
 
     const onFastForward = (event: KeyboardEvent) => {
-      if ((event.key === 'Enter' || event.code === 'Space' || event.key === ' ') && !finished) {
+      if (
+        (event.key === 'Enter' || event.code === 'Space' || event.key === ' ') &&
+        !finished
+      ) {
         event.preventDefault();
         fastForwardRequested = true;
 
@@ -587,6 +602,7 @@ export default function App() {
   // - Any key during intro: skip intro
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // 全域黑白色彩切換快捷鍵: Ctrl+T 或 Ctrl+B
       if ((e.ctrlKey || e.metaKey) && (e.key === 't' || e.key === 'T' || e.key === 'b' || e.key === 'B')) {
         e.preventDefault();
         toggleTheme();
@@ -599,10 +615,12 @@ export default function App() {
         return;
       }
 
+      // 終端機按 Esc
       if (e.key === 'Escape' && currentView === 'terminal') {
         setHintMessage(null);
       }
 
+      // 入場階段按下任意鍵跳過
       if (introPhase !== 'completed' && currentView === 'terminal') {
         skipIntro();
       }
@@ -614,10 +632,14 @@ export default function App() {
   // Terminal command submission handler
   const isChapterPattern = (cmd: string) => /^\d+_[A-Za-z]+_\d+$/.test(cmd);
 
+  // 指令核心處理函式 (供主終端機與目錄小輸入欄共用)
   const processCommand = (rawCommand: string) => {
     const command = rawCommand.trim();
     if (!command) return;
 
+    // ========================================================
+    // 指令編輯區 (未來可在此直接加入或修改您的自訂指令邏輯)
+    // ========================================================
     const lower = command.toLowerCase();
     const args = lower.split(/\s+/);
     const cmd = args[0];
@@ -632,20 +654,25 @@ export default function App() {
       toggleTheme('white');
       setHintMessage(null);
     } else if (cmd === 'simple') {
+      // 導向信件風格頁面
       setCurrentView('letter');
       setHintMessage(null);
     } else if (cmd === 'k33p_1t_s1mpl3') {
+      // 彩蛋指令：導向彩蛋信件頁面
       setCurrentView('easter_egg');
       setHintMessage(null);
     } else if (cmd === '01_gr_1' || cmd === '01-gr-1') {
+      // 劇情文件指令：導向 01_GR_1 劇情頁面
       setPreviousView(currentView === 'list' ? 'list' : 'terminal');
       setCurrentView('doc_01_gr_1');
       setHintMessage(null);
     } else if (cmd === '01_te_67' || cmd === '01-te-67') {
+      // 劇情文件指令：導向 01_TE_67 劇情頁面
       setPreviousView(currentView === 'list' ? 'list' : 'terminal');
       setCurrentView('doc_01_te_67');
       setHintMessage(null);
     } else if (cmd === 'list') {
+      // 導向探索記錄目錄 (僅限 list，移除 log 指令)
       setPreviousView(currentView === 'list' ? previousView : currentView);
       setCurrentView('list');
       setHintMessage(null);
@@ -653,6 +680,7 @@ export default function App() {
       setCurrentView('terminal');
       setHintMessage(null);
     } else if (lower === 'inspect' || lower === 'inspect_' || lower.startsWith('inspect_') || lower.startsWith('inspect ')) {
+      // 物件調查互動指令: inspect_<物件英文前兩字> (例如: inspect_ri)
       let target = '';
       if (lower.startsWith('inspect_')) {
         target = lower.slice('inspect_'.length).trim();
@@ -665,10 +693,12 @@ export default function App() {
       } else if (target.length !== 2 || !/^[a-z]{2}$/.test(target)) {
         setHintMessage('代號格式錯誤。請輸入物件英文名稱的前兩個字母 (例如: inspect_ri)');
       } else if (target === 'ri') {
+        // 成功調查「山脊旅店 (Ridge Lodge)」
         setPreviousView(currentView);
         setCurrentView('letter_ridge_lodge');
         setHintMessage(null);
       } else if (target === 'sh') {
+        // 成功調查「尸米那誰喔 (Shiminaseo)」
         setPreviousView(currentView);
         setCurrentView('letter_shiminaseo');
         setHintMessage(null);
@@ -676,20 +706,23 @@ export default function App() {
         setHintMessage(`未知的目標物件代號: "${target}"。請確認物件英文名稱 (例如: inspect_ri, inspect_sh)`);
       }
     } else if (cmd === 'tittle' || cmd === 'title') {
+      // 更改資料夾名稱指令: tittle <原本的名字> <要換的名字>
       const rest = command.slice(cmd.length).trim();
       const parts = rest.split(/\s+/);
 
       if (parts.length < 2 || !parts[0] || !parts[1]) {
         setHintMessage(`格式錯誤。格式為: tittle <原本的名字> <要換的名字>`);
       } else {
-        const cleanSpecified = parts[0].replace(/^['"]|['"]$/g, '');
-        const cleanNewName = parts.slice(1).join(' ').trim().replace(/^['"]|['"]$/g, '');
+        const cleanSpecified = parts[0].replace(/^["']|["']$/g, '');
+        const cleanNewName = parts.slice(1).join(' ').trim().replace(/^["']|["']$/g, '');
 
         if (!cleanNewName) {
           setHintMessage(`格式錯誤。格式為: tittle <原本的名字> <要換的名字>`);
         } else if (/\s/.test(cleanNewName)) {
+          // 偵測到新名字包含空格時提示報錯
           setHintMessage(`資料夾名稱不能包含空格，建議使用底線 (例如: chapter_01)`);
         } else {
+          // 搜尋所有可能匹配的資料夾 key (包括 'others', 'inspect' 及各章節數字前綴如 '01')
           const allPrefixes = Array.from(new Set([
             'others',
             'inspect',
@@ -706,7 +739,10 @@ export default function App() {
             setHintMessage(`找不到指定的資料夾 "${cleanSpecified}"。`);
           } else {
             const oldDisplayName = folderCustomNames[matchedKey] || matchedKey;
-            const nextNames = { ...folderCustomNames, [matchedKey]: cleanNewName };
+            const nextNames = {
+              ...folderCustomNames,
+              [matchedKey]: cleanNewName,
+            };
             setFolderCustomNames(nextNames);
             try {
               localStorage.setItem('cli_folder_names', JSON.stringify(nextNames));
@@ -716,14 +752,15 @@ export default function App() {
         }
       }
     } else if (cmd === '6') {
+      // 專屬於 6 號碼的更名指令: 6 <原本的名字> <要換的名字>
       const rest = command.slice(cmd.length).trim();
       const parts = rest.split(/\s+/);
 
       if (parts.length < 2 || !parts[0] || !parts[1]) {
         setHintMessage(`格式錯誤。格式為: 6 <原本的名字> <要換的名字> (目前名稱: "${name6}")`);
       } else {
-        const cleanSpecified = parts[0].replace(/^['"]|['"]$/g, '').trim();
-        const cleanNewName = parts.slice(1).join(' ').trim().replace(/^['"]|['"]$/g, '');
+        const cleanSpecified = parts[0].replace(/^["']|["']$/g, '').trim();
+        const cleanNewName = parts.slice(1).join(' ').trim().replace(/^["']|["']$/g, '');
 
         if (!cleanNewName) {
           setHintMessage(`格式錯誤。格式為: 6 <原本的名字> <要換的名字>`);
@@ -731,8 +768,9 @@ export default function App() {
           setHintMessage(`指定的名字 "${cleanSpecified}" 不相符，目前 6 號碼的名稱為 "${name6}"。`);
         } else if (/\s/.test(cleanNewName)) {
           setHintMessage(`名字不能包含空格，建議使用底線 (例如: so_sad)`);
-        } else if (isNameUsedByAnotherRole(cleanNewName, name6)) {
-          setHintMessage(`名稱 "${cleanNewName}" 已被其他角色使用，因此 6 號碼不能使用它。請換一個新名稱。`);
+        } else if (usedNames.some(n => n.toLowerCase() === cleanNewName.toLowerCase())) {
+          // 防止撞名字：先取的之後不能取了
+          setHintMessage(`名稱 "${cleanNewName}" 已經被使用過，不能重複取名！請換一個新名稱。`);
         } else {
           const oldName = name6;
           setName6(cleanNewName);
@@ -746,14 +784,15 @@ export default function App() {
         }
       }
     } else if (cmd === '7') {
+      // 專屬於 7 號碼的更名指令: 7 <原本的名字> <要換的名字>
       const rest = command.slice(cmd.length).trim();
       const parts = rest.split(/\s+/);
 
       if (parts.length < 2 || !parts[0] || !parts[1]) {
         setHintMessage(`格式錯誤。格式為: 7 <原本的名字> <要換的名字> (目前名稱: "${name7}")`);
       } else {
-        const cleanSpecified = parts[0].replace(/^['"]|['"]$/g, '').trim();
-        const cleanNewName = parts.slice(1).join(' ').trim().replace(/^['"]|['"]$/g, '');
+        const cleanSpecified = parts[0].replace(/^["']|["']$/g, '').trim();
+        const cleanNewName = parts.slice(1).join(' ').trim().replace(/^["']|["']$/g, '');
 
         if (!cleanNewName) {
           setHintMessage(`格式錯誤。格式為: 7 <原本的名字> <要換的名字>`);
@@ -761,8 +800,9 @@ export default function App() {
           setHintMessage(`指定的名字 "${cleanSpecified}" 不相符，目前 7 號碼的名稱為 "${name7}"。`);
         } else if (/\s/.test(cleanNewName)) {
           setHintMessage(`名字不能包含空格，建議使用底線 (例如: so_sad)`);
-        } else if (isNameUsedByAnotherRole(cleanNewName, name7)) {
-          setHintMessage(`名稱 "${cleanNewName}" 已被其他角色使用，因此 7 號碼不能使用它。請換一個新名稱。`);
+        } else if (usedNames.some(n => n.toLowerCase() === cleanNewName.toLowerCase())) {
+          // 防止撞名字：先取的之後不能取了
+          setHintMessage(`名稱 "${cleanNewName}" 已經被使用過，不能重複取名！請換一個新名稱。`);
         } else {
           const oldName = name7;
           setName7(cleanNewName);
@@ -776,14 +816,15 @@ export default function App() {
         }
       }
     } else if (cmd === 'name') {
+      // 通用名字更名指令: name <原本的名字> <要換的名字>
       const rest = command.slice(cmd.length).trim();
       const parts = rest.split(/\s+/);
 
       if (parts.length < 2 || !parts[0] || !parts[1]) {
         setHintMessage(`格式錯誤。格式為: name <原本的名字> <要換的名字>`);
       } else {
-        const cleanSpecified = parts[0].replace(/^['"]|['"]$/g, '').trim();
-        const cleanNewName = parts.slice(1).join(' ').trim().replace(/^['"]|['"]$/g, '');
+        const cleanSpecified = parts[0].replace(/^["']|["']$/g, '').trim();
+        const cleanNewName = parts.slice(1).join(' ').trim().replace(/^["']|["']$/g, '');
 
         if (!cleanNewName) {
           setHintMessage(`格式錯誤。格式為: name <原本的名字> <要換的名字>`);
@@ -795,8 +836,9 @@ export default function App() {
           setHintMessage(`指定的名字 "${cleanSpecified}" 不相符。`);
         } else if (/\s/.test(cleanNewName)) {
           setHintMessage(`名字不能包含空格，建議使用底線 (例如: so_sad)`);
-        } else if (isNameUsedByAnotherRole(cleanNewName, cleanSpecified)) {
-          setHintMessage(`名稱 "${cleanNewName}" 已被其他角色使用，因此這個角色不能使用它。請換一個新名稱。`);
+        } else if (usedNames.some(n => n.toLowerCase() === cleanNewName.toLowerCase())) {
+          // 防止撞名字：先取的之後不能取了
+          setHintMessage(`名稱 "${cleanNewName}" 已經被使用過，不能重複取名！請換一個新名稱。`);
         } else {
           const isTarget6 = cleanSpecified.toLowerCase() === name6.toLowerCase();
           const isTarget7 = cleanSpecified.toLowerCase() === name7.toLowerCase();
@@ -826,22 +868,29 @@ export default function App() {
         }
       }
     } else {
+      // 非關鍵字/指令時，顯示柔和呼吸提示文字
       setHintMessage('Type "simple" for help. 👈(ﾟヮﾟ👈) ');
     }
   };
 
+  // Terminal command submission handler
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     processCommand(inputValue);
     setInputValue('');
   };
 
+  // Mini input bar handler (目錄頁面小輸入欄)
   const handleMiniSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     processCommand(miniInputValue);
     setMiniInputValue('');
   };
 
+  // 分組與排序邏輯：
+  // 1. inspect 指令獨立一組 [ inspect ]
+  // 2. 符合 "數字_字母_數字" (例如 01_GR_1) 的指令，依數字開頭 01, 02, 03... 分資料夾
+  // 3. 其他文字指令 (例如 simple, K33p_1t_S1mpl3) 集中置頂於 [ others ]
   const unlockedItems = LETTER_CATALOG.filter(item => unlockedLetters.includes(item.id));
 
   const inspectItems = unlockedItems.filter(item => item.cmd.startsWith('inspect_'));
@@ -897,12 +946,14 @@ export default function App() {
           .readme-border-top, .readme-border-left, .readme-border-right, .readme-border-bottom { animation:none !important; transform:none !important; }
         }
       `}</style>
-      <div
-        onClick={handleGlobalClick}
-        className={`min-h-screen w-full flex flex-col items-center justify-start font-mono select-none theme-transition cursor-text ${
-          isDark ? 'theme-dark bg-black text-white' : 'theme-light bg-white text-black'
-        }`}
-      >
+    <div
+      onClick={handleGlobalClick}
+      className={`min-h-screen w-full flex flex-col items-center justify-start font-mono select-none theme-transition cursor-text ${
+        currentView === 'list' || isDark ? 'theme-dark bg-black text-white' : 'theme-light bg-white text-black'
+      }`}
+    >
+      {/* Top-Right Theme Switch Button (在全黑 list 介面隱藏) */}
+      {currentView !== 'list' && (
         <button
           type="button"
           onClick={(e) => {
@@ -918,318 +969,754 @@ export default function App() {
         >
           {isDark ? '[ SWITCH TO WHITE ]' : '[ SWITCH TO BLACK ]'}
         </button>
+      )}
 
-        {currentView === 'terminal' && (
-          <div className="w-full max-w-xl flex flex-col items-center px-4 relative">
-            {introPhase !== 'completed' && introPhase !== 'blank' && (
-              <div
-                className={`w-full text-center px-4 pt-[28vh] flex items-center justify-center transition-opacity duration-[1200ms] ease-in-out ${
-                  introPhase === 'fade_out' ? 'opacity-0' : 'opacity-100'
-                }`}
-              >
-                <h1 className="text-xl sm:text-3xl font-mono tracking-widest leading-relaxed whitespace-pre-line theme-transition">
-                  {displayedText}
-                  {introPhase === 'typing' && (
-                    <span
-                      className={`inline-block w-2.5 h-5 sm:w-3.5 sm:h-7 ml-1.5 align-middle pixel-cursor ${
-                        isDark ? 'bg-white' : 'bg-black'
-                      }`}
-                    />
-                  )}
-                </h1>
+      {/* VIEW 1: Terminal / Input Bar View */}
+      {currentView === 'terminal' && (
+        <div className="w-full max-w-xl flex flex-col items-center px-4 relative">
+          {/* Phase A: Entrance Typewriter Text (僅在入場時出現，字打完後停頓一下再淡出) */}
+          {introPhase !== 'completed' && introPhase !== 'blank' && (
+            <div
+              className={`w-full text-center px-4 pt-[28vh] flex items-center justify-center transition-opacity duration-[1200ms] ease-in-out ${
+                introPhase === 'fade_out' ? 'opacity-0' : 'opacity-100'
+              }`}
+            >
+              <h1 className="text-xl sm:text-3xl font-mono tracking-widest leading-relaxed whitespace-pre-line theme-transition">
+                {displayedText}
+                {introPhase === 'typing' && (
+                  <span
+                    className={`inline-block w-2.5 h-5 sm:w-3.5 sm:h-7 ml-1.5 align-middle pixel-cursor ${
+                      isDark ? 'bg-white' : 'bg-black'
+                    }`}
+                  />
+                )}
+              </h1>
+            </div>
+          )}
+
+          {/* Phase B: Blank state (一樣留空) */}
+          {introPhase === 'blank' && (
+            <div className="w-full pt-[28vh] min-h-[5rem]" />
+          )}
+
+          {/* Phase C: Command Input Section (留空後輸入欄緩緩淡入) */}
+          {introPhase === 'completed' && (
+            <div
+              className={`w-full pt-[25vh] transition-all duration-[1200ms] ease-out flex flex-col items-center ${
+                showInput
+                  ? 'opacity-100 translate-y-0'
+                  : 'opacity-0 translate-y-4 pointer-events-none'
+              }`}
+            >
+              {/* Welcome text with retro breathing blink */}
+              <div className="mb-4 text-base sm:text-xl font-mono tracking-widest animate-comfortable-blink select-none theme-transition font-bold text-center">
+                Welcome {userName} !
               </div>
-            )}
 
-            {introPhase === 'blank' && (
-              <div className="w-full pt-[28vh] min-h-[5rem]" />
-            )}
-
-            {introPhase === 'completed' && (
-              <div
-                className={`w-full pt-[25vh] transition-all duration-[1200ms] ease-out flex flex-col items-center ${
-                  showInput
-                    ? 'opacity-100 translate-y-0'
-                    : 'opacity-0 translate-y-4 pointer-events-none'
-                }`}
-              >
-                <div className="mb-4 text-base sm:text-xl font-mono tracking-widest animate-comfortable-blink select-none theme-transition font-bold text-center">
-                  Welcome {userName} !
-                </div>
-
-                <form onSubmit={handleSubmit} className="w-full relative" onClick={(e) => e.stopPropagation()}>
-                  <div className="relative flex items-center w-full">
-                    <input
-                      ref={inputRef}
-                      type="text"
-                      value={inputValue}
-                      onChange={(e) => setInputValue(e.target.value)}
-                      autoFocus={showInput}
-                      spellCheck={false}
-                      className={`w-full text-lg sm:text-2xl py-3 px-4 bg-transparent border-2 outline-none font-mono tracking-wide theme-transition ${
-                        isDark
-                          ? 'border-white text-white placeholder-white/30 focus:border-white'
-                          : 'border-black text-black placeholder-black/30 focus:border-black'
-                      }`}
-                      placeholder="輸入指令..."
-                    />
-                    <div
-                      className={`absolute right-4 w-3 h-5 pixel-cursor pointer-events-none ${
-                        isDark ? 'bg-white' : 'bg-black'
-                      }`}
-                    />
-                  </div>
-                </form>
-
-                {hintMessage && (
+              {/* Command Input Form */}
+              <form onSubmit={handleSubmit} className="w-full relative" onClick={(e) => e.stopPropagation()}>
+                <div className="relative flex items-center w-full">
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    autoFocus={showInput}
+                    spellCheck={false}
+                    className={`w-full text-lg sm:text-2xl py-3 px-4 bg-transparent border-2 outline-none font-mono tracking-wide theme-transition ${
+                      isDark
+                        ? 'border-white text-white placeholder-white/30 focus:border-white'
+                        : 'border-black text-black placeholder-black/30 focus:border-black'
+                    }`}
+                    placeholder="輸入指令..."
+                  />
+                  {/* Retro blinking pixel block cursor */}
                   <div
-                    className={`mt-6 text-sm sm:text-base font-mono tracking-wider animate-comfortable-blink select-none theme-transition ${
-                      isDark ? 'text-white' : 'text-black'
+                    className={`absolute right-4 w-3 h-5 pixel-cursor pointer-events-none ${
+                      isDark ? 'bg-white' : 'bg-black'
+                    }`}
+                  />
+                </div>
+              </form>
+
+              {/* Comfortable Breathing Hint Message: Type "simple" for help. 👈(ﾟヮﾟ👈) */}
+              {hintMessage && (
+                <div
+                  className={`mt-6 text-sm sm:text-base font-mono tracking-wider animate-comfortable-blink select-none theme-transition ${
+                    isDark ? 'text-white' : 'text-black'
+                  }`}
+                >
+                  {hintMessage}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* VIEW 2: Letter Page View (信件頁面) */}
+      {currentView === 'letter' && (
+        <div 
+          className="readme-page w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Minimalist Return Button */}
+          <div className="w-full flex justify-start mb-4">
+            <button
+              type="button"
+              onClick={() => setCurrentView('terminal')}
+              className={`px-3 py-1 text-xs sm:text-sm border-2 cursor-pointer font-bold tracking-wider uppercase transition-transform active:translate-y-0.5 ${
+                isDark
+                  ? 'border-white hover:bg-white hover:text-black bg-black text-white'
+                  : 'border-black hover:bg-black hover:text-white bg-white text-black'
+              }`}
+              title="返回 (Esc)"
+            >
+              [ ◄ 返回 ]
+            </button>
+          </div>
+
+          {/* Letter Envelope Box (白色框框 像是信件這樣) */}
+          <div
+            className={`readme-paper w-full border-2 p-6 sm:p-10 relative theme-transition ${
+              isDark ? 'border-white bg-black' : 'border-black bg-white'
+            }`}
+          >
+            {/* 外框動畫：上邊先畫出，再向下延伸，最後畫出底邊；不改動原本內容尺寸與字體 */}
+            <span aria-hidden="true" className="readme-border-top pointer-events-none z-20" style={{ backgroundColor: isDark ? '#ffffff' : '#000000' }} />
+            <span aria-hidden="true" className="readme-border-left pointer-events-none z-20" style={{ backgroundColor: isDark ? '#ffffff' : '#000000' }} />
+            <span aria-hidden="true" className="readme-border-right pointer-events-none z-20" style={{ backgroundColor: isDark ? '#ffffff' : '#000000' }} />
+            <span aria-hidden="true" className="readme-border-bottom pointer-events-none z-20" style={{ backgroundColor: isDark ? '#ffffff' : '#000000' }} />
+
+            {/* Top Postage / Stamp Accent */}
+            <div className="flex items-center justify-between border-b pb-4 mb-6">
+              <span className="readme-title-hidden text-xl sm:text-2xl font-bold tracking-wider">README</span>
+            </div>
+
+            {/* Letter Content Area (信件內容) */}
+            <div className="readme-letter-content min-h-[220px] sm:min-h-[280px] font-mono leading-relaxed text-xs sm:text-sm space-y-3.5">
+              <p className="font-bold text-sm sm:text-base">
+                親愛的玩家，歡迎來到沉浸式推理解謎遊戲 <span className="underline underline-offset-4 decoration-1">《K33P_1t_S1mpl3》</span>！o(////▽////)q
+              </p>
+
+              <p>
+                我是你的 專屬助理 —— <strong className="font-bold">咪喵醬</strong> (￣▽￣)”
+              </p>
+
+              <p>
+                這封信件裡包含了一些最基本的常用指令跟快鍵，至於更高階的嘛……就要靠你自己去其他神祕文件中發掘囉！（＾-＾）
+              </p>
+
+              <p className="opacity-90 italic">
+                偷偷告訴你 ~不墨守成規的 咪喵醬 常常觸發意想不到的小驚喜喔？ (//ˋ _ ˊ//)
+              </p>
+
+              <p>
+                好啦！「User」這個稱呼實在太沒個性了……<br />
+                快使用下方指令，給自己取個特別的專屬代號吧！( •̀ ω •́ )
+              </p>
+
+              <p className="py-1">
+                <span className="font-bold">指令：</span>
+                <code className="readme-command-frame font-bold px-1.5 py-0.5 border tracking-wider ml-1 inline-block">
+                  name &lt;目前名字&gt; &lt;新名字&gt;
+                </code>
+              </p>
+
+              <p>
+                當然！還有其他超酷的魔法喔 
+              </p>
+
+              <p>
+                用 <code className="readme-command-frame font-bold px-1.5 py-0.5 border mx-0.5 inline-block">theme</code> 或 <code className="readme-command-frame font-bold px-1.5 py-0.5 border mx-0.5 inline-block">toggle</code> 就能自由切換黑白畫面 
+              </p>
+
+              <p>
+                如果出現 <span className={`font-bold inline-block ${isDark ? 'text-[#fef08a]' : 'text-[#854d0e] bg-[#fef9c3] px-1 border border-[#facc15]/60'}`}>黃色</span> 的字體時，點下去後會有有趣的事情發生喔 （*＾-＾*）
+              </p>
+
+              <p className="pt-1">
+                迷路時也別擔心，按一下 <kbd className="readme-command-frame font-bold px-1.5 py-0.5 border mx-0.5 inline-block">Esc</kbd> 就能一秒回到輸入欄啦 (๑•̀ㅂ•́)و✧
+              </p>
+
+              <p className="pt-2">
+                OK 那麼親愛的 <strong className="font-bold">{userName}</strong> 歡迎來到我們創造的世界、聽一個有趣故事 <code className="readme-command-frame readme-command-disabled font-bold px-1.5 py-0.5 border mx-0.5 inline-block cursor-pointer hover:opacity-80" onClick={() => setCurrentView('doc_01_gr_1')} title="點擊或輸入 01_GR_1 前往">01_GR_1</code>
+              </p>
+            </div>
+
+            {/* Bottom Letter Footer / Divider */}
+            <div className="readme-footer readme-footer-hidden pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
+              <span>END OF LETTER</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* VIEW 3: Easter Egg Letter Page View (彩蛋信件頁面) */}
+      {currentView === 'easter_egg' && (
+        <div 
+          className="readme-page w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Minimalist Return Button */}
+          <div className="w-full flex justify-start mb-4">
+            <button
+              type="button"
+              onClick={() => setCurrentView('terminal')}
+              className={`px-3 py-1 text-xs sm:text-sm border-2 cursor-pointer font-bold tracking-wider uppercase transition-transform active:translate-y-0.5 ${
+                isDark
+                  ? 'border-white hover:bg-white hover:text-black bg-black text-white'
+                  : 'border-black hover:bg-black hover:text-white bg-white text-black'
+              }`}
+              title="返回 (Esc)"
+            >
+              [ ◄ 返回 ]
+            </button>
+          </div>
+
+          {/* Letter Envelope Box (與 README 相同外觀的信件框) */}
+          <div
+            className={`w-full border-2 p-6 sm:p-10 relative theme-transition ${
+              isDark ? 'border-white bg-black' : 'border-black bg-white'
+            }`}
+          >
+            {/* Top Postage / Stamp Accent */}
+            <div className="flex items-center justify-between border-b pb-4 mb-6">
+              <span className="text-xl sm:text-2xl font-bold tracking-wider">K33P_1t_S1mpl3</span>
+            </div>
+
+            {/* Letter Content Area (彩蛋內容區 - 目前留空供後續填寫) */}
+            <div className="min-h-[220px] sm:min-h-[280px] font-mono leading-relaxed text-xs sm:text-sm space-y-3.5">
+              {/* 請在此處放入您未來的彩蛋內容 */}
+            </div>
+
+            {/* Bottom Letter Footer / Divider */}
+            <div className="readme-footer readme-footer-hidden pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
+              <span>END OF LETTER</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* VIEW 4: Story Document View (01_GR_1) */}
+      {currentView === 'doc_01_gr_1' && (
+        <div 
+          className="readme-page w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Minimalist Return Button */}
+          <div className="w-full flex justify-start mb-4">
+            <button
+              type="button"
+              onClick={() => setCurrentView('terminal')}
+              className={`px-3 py-1 text-xs sm:text-sm border-2 cursor-pointer font-bold tracking-wider uppercase transition-transform active:translate-y-0.5 ${
+                isDark
+                  ? 'border-white hover:bg-white hover:text-black bg-black text-white'
+                  : 'border-black hover:bg-black hover:text-white bg-white text-black'
+              }`}
+              title="返回 (Esc)"
+            >
+              [ ◄ 返回 ]
+            </button>
+          </div>
+
+          {/* Document Box */}
+          <div
+            className={`w-full border-2 p-6 sm:p-10 relative theme-transition ${
+              isDark ? 'border-white bg-black' : 'border-black bg-white'
+            }`}
+          >
+            {/* Top Header */}
+            <div className="flex items-center justify-between border-b pb-4 mb-6">
+              <span className="text-xl sm:text-2xl font-bold tracking-wider">01_GR_1</span>
+            </div>
+
+            {/* Document Content Area */}
+            <div className="min-h-[220px] sm:min-h-[280px] font-mono leading-relaxed text-xs sm:text-sm space-y-3.5">
+              <p>狂風裹挾著暴雨，像無數細針砸在視線裡。</p>
+              <p>雨水順著我的額頭滑進眼睛，刺得發痛。</p>
+              <p>
+                獨自走在幾乎要被黑暗吞噬的 <strong className="font-bold">綠嶺小徑</strong>（<strong className="font-bold italic">Green Summit Way</strong>）時，我隱約看見前方出現了一座隱匿在大樹後方的木造建築。
+              </p>
+              <p>
+                門口掛著一盞搖搖欲墜的油燈，映出四個字 ——「
+                <span
+                  onClick={() => {
+                    setPreviousView('doc_01_gr_1');
+                    setCurrentView('letter_ridge_lodge');
+                  }}
+                  className={`inline-block font-bold cursor-pointer transition-colors underline decoration-dotted underline-offset-4 ${
+                    isDark
+                      ? 'text-[#fef08a] hover:text-[#fffbeb]'
+                      : 'text-[#854d0e] bg-[#fef9c3] px-1 border border-[#facc15]/60 hover:bg-[#fef08a]'
+                  }`}
+                  title="可調查物件：點擊或輸入 inspect_ri 進行互動"
+                >
+                  山脊旅店 (<span className="italic">Ridge Lodge</span>)
+                </span>
+                」。
+              </p>
+              <p>
+                <strong className="font-bold">瑪拉</strong>衝上階梯，站在沉重的木門前，抬手緊握銅環。
+              </p>
+              <p className="tracking-widest">
+                叩、叩、叩 ——
+              </p>
+              <p>
+                沒有回應。只有風聲與雨水砸在屋頂上的巨響。
+              </p>
+              <p>
+                她再次發力敲擊。這次，門內傳來了拖沓的腳步聲。
+              </p>
+              <p className="tracking-widest">
+                「吱呀——」
+              </p>
+            </div>
+
+            {/* Bottom Letter Footer / Divider */}
+            <div className="readme-footer readme-footer-hidden pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
+              <span>END OF LETTER</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* VIEW 5: Interactive Object Letter View (Ridge Lodge / 山脊旅店) */}
+      {currentView === 'letter_ridge_lodge' && (
+        <div 
+          className="readme-page w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Minimalist Return Button */}
+          <div className="w-full flex justify-start mb-4">
+            <button
+              type="button"
+              onClick={handleBack}
+              className={`px-3 py-1 text-xs sm:text-sm border-2 cursor-pointer font-bold tracking-wider uppercase transition-transform active:translate-y-0.5 ${
+                isDark
+                  ? 'border-white hover:bg-white hover:text-black bg-black text-white'
+                  : 'border-black hover:bg-black hover:text-white bg-white text-black'
+              }`}
+              title="返回 (Esc)"
+            >
+              [ ◄ 返回 ]
+            </button>
+          </div>
+
+          {/* Letter Envelope Box (與其他信件同款框框) */}
+          <div
+            className={`w-full border-2 p-6 sm:p-10 relative theme-transition ${
+              isDark ? 'border-white bg-black' : 'border-black bg-white'
+            }`}
+          >
+            {/* Top Header */}
+            <div className="flex items-center justify-between border-b pb-4 mb-6">
+              <span className="text-xl sm:text-2xl font-bold tracking-wider">
+                山脊旅店 (Ridge Lodge)
+              </span>
+            </div>
+
+            {/* Letter Content Area (預留給您日後填寫內容) */}
+            <div className="min-h-[220px] sm:min-h-[280px] font-mono leading-relaxed text-xs sm:text-sm space-y-3.5">
+              {/* 請在此處放入您未來的山脊旅店內容 */}
+            </div>
+
+            {/* Bottom Letter Footer / Divider */}
+            <div className="readme-footer readme-footer-hidden pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
+              <span>END OF LETTER</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* VIEW: 尸米那誰喔 (Shiminaseo) Letter View */}
+      {currentView === 'letter_shiminaseo' && (
+        <div 
+          className="readme-page w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Minimalist Return Button */}
+          <div className="w-full flex justify-start mb-4">
+            <button
+              type="button"
+              onClick={handleBack}
+              className={`px-3 py-1 text-xs sm:text-sm border-2 cursor-pointer font-bold tracking-wider uppercase transition-transform active:translate-y-0.5 ${
+                isDark
+                  ? 'border-white hover:bg-white hover:text-black bg-black text-white'
+                  : 'border-black hover:bg-black hover:text-white bg-white text-black'
+              }`}
+              title="返回 (Esc)"
+            >
+              [ ◄ 返回 ]
+            </button>
+          </div>
+
+          {/* Letter Envelope Box (與其他信件同款框框) */}
+          <div
+            className={`w-full border-2 p-6 sm:p-10 relative theme-transition ${
+              isDark ? 'border-white bg-black' : 'border-black bg-white'
+            }`}
+          >
+            {/* Top Header */}
+            <div className="flex items-center justify-between border-b pb-4 mb-6">
+              <span className="text-xl sm:text-2xl font-bold tracking-wider">
+                尸米那誰喔 (Shiminaseo)
+              </span>
+            </div>
+
+            {/* Letter Content Area */}
+            <div className="min-h-[220px] sm:min-h-[280px] font-mono leading-relaxed text-xs sm:text-sm space-y-3.5">
+              <p>
+                <span
+                  className={`inline-block font-bold ${
+                    isDark ? 'text-[#7dd3fc]' : 'text-[#1d4ed8]'
+                  }`}
+                >
+                  {name6}
+                </span>
+                ：你是從哪裡來的? 你是怎麼來的?
+              </p>
+              <p className="pl-4 sm:pl-6 opacity-90">
+                你知不知道可以用 <code className={`font-bold px-1.5 py-0.5 border mx-0.5 inline-block ${isDark ? 'border-white text-white' : 'border-black text-black'}`}>inspect_sh</code> 來?
+              </p>
+              <p className="pl-4 sm:pl-6 opacity-90">
+                好的現在你知道了~親~ :D
+              </p>
+
+              <div className="pt-3 pb-1 pl-4 sm:pl-6 opacity-80 tracking-wider">
+                ㄅ一 ㄅ一   迎來到 苡萱醬小課堂 ~
+              </div>
+
+              <p className="pt-1">
+                <span
+                  className={`inline-block font-bold ${
+                    isDark ? 'text-[#7dd3fc]' : 'text-[#1d4ed8]'
+                  }`}
+                >
+                  {name6}
+                </span>
+                ： 尸米那誰喔 is すみません (•ˋ _ ˊ•)
+              </p>
+              <p className="pl-4 sm:pl-6 opacity-90">
+                {'意思是 失禮了、不好意思 (>⇀᷿<)'}
+              </p>
+              <p className="pl-4 sm:pl-6 opacity-90">
+                QQ
+              </p>
+              <p className="pl-4 sm:pl-6 opacity-90 pt-1">
+                但前兩個字是 苡萱醬的食物~ 
+              </p>
+              <p className="pl-4 sm:pl-6 opacity-90">
+                啾咪~ (/▽＼)
+              </p>
+            </div>
+
+            {/* Bottom Letter Footer / Divider */}
+            <div className="readme-footer readme-footer-hidden pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
+              <span>END OF LETTER</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* VIEW: 01_TE_67 Story Document View */}
+      {currentView === 'doc_01_te_67' && (
+        <div 
+          className="readme-page w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Minimalist Return Button */}
+          <div className="w-full flex justify-start mb-4">
+            <button
+              type="button"
+              onClick={handleBack}
+              className={`px-3 py-1 text-xs sm:text-sm border-2 cursor-pointer font-bold tracking-wider uppercase transition-transform active:translate-y-0.5 ${
+                isDark
+                  ? 'border-white hover:bg-white hover:text-black bg-black text-white'
+                  : 'border-black hover:bg-black hover:text-white bg-white text-black'
+              }`}
+              title="返回 (Esc)"
+            >
+              [ ◄ 返回 ]
+            </button>
+          </div>
+
+          {/* Letter Envelope Box (與其他信件同款框框) */}
+          <div
+            className={`w-full border-2 p-6 sm:p-10 relative theme-transition ${
+              isDark ? 'border-white bg-black' : 'border-black bg-white'
+            }`}
+          >
+            {/* Top Header */}
+            <div className="flex items-center justify-between border-b pb-4 mb-6">
+              <span className="text-xl sm:text-2xl font-bold tracking-wider">
+                01_TE_67
+              </span>
+            </div>
+
+            {/* Letter Content Area */}
+            <div className="min-h-[220px] sm:min-h-[280px] font-mono leading-relaxed text-xs sm:text-sm space-y-3.5">
+              <p>
+                <span
+                  className={`inline-block font-bold ${
+                    isDark ? 'text-[#7dd3fc]' : 'text-[#1d4ed8]'
+                  }`}
+                >
+                  {name6}
+                </span>
+                ： 哈喽 大家好 我是苡萱醬 ~~~ o(*////▽////*)q
+              </p>
+              <p className="pl-4 sm:pl-6 opacity-90">
+                我喜歡吃...{' '}
+                <span
+                  onClick={() => {
+                    setPreviousView('doc_01_te_67');
+                    setCurrentView('letter_shiminaseo');
+                  }}
+                  className={`inline-block font-bold cursor-pointer transition-colors underline decoration-dotted underline-offset-4 ${
+                    isDark
+                      ? 'text-[#fef08a] hover:text-[#fffbeb]'
+                      : 'text-[#854d0e] bg-[#fef9c3] px-1 border border-[#facc15]/60 hover:bg-[#fef08a]'
+                  }`}
+                  title="可調查物件：點擊或輸入 inspect_sh 進行互動"
+                >
+                  尸米那誰喔 (<span className="italic">Shiminaseo</span>)
+                </span>
+                {' '}(? www 
+              </p>
+              <p className="pl-4 sm:pl-6 opacity-90">
+                嘿嘿嘿 以下是我的美照 (❁´◡`❁)
+              </p>
+
+              {/* 苡萱醬美照展示 */}
+              <div className="pt-4 pl-4 sm:pl-6">
+                <div
+                  className={`inline-block p-2 border-2 ${
+                    isDark ? 'border-white/60 bg-white/5' : 'border-black/60 bg-black/5'
+                  }`}
+                >
+                  <img
+                    src={getPhotoSrc('image_fd2bab39.png')}
+                    alt="苡萱醬的美照"
+                    className="max-w-[260px] sm:max-w-[320px] w-full h-auto object-contain block select-none"
+                    loading="lazy"
+                  />
+                  <div className="pt-2 text-[10px] sm:text-xs opacity-60 text-center tracking-wider font-mono">
+                    [ 苡萱醬的美照 (❁´◡`❁) ]
+                  </div>
+                </div>
+              </div>
+
+              {/* 杜杜醬 (7) 區塊 */}
+              <div className="pt-6 space-y-3.5 border-t border-dashed opacity-95">
+                <p>
+                  <span
+                    className={`inline-block font-bold ${
+                      isDark ? 'text-[#7dd3fc]' : 'text-[#1d4ed8]'
                     }`}
                   >
-                    {hintMessage}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
+                    {name7}
+                  </span>
+                  ：大家好~ 我是杜杜醬~ (•ˋ _ ˊ•)
+                </p>
+                <p className="pl-4 sm:pl-6 opacity-90">
+                  我是過來湊數的 ￣へ￣
+                </p>
+                <p className="pl-4 sm:pl-6 opacity-90">
+                  因為咪喵醬希望路徑最後有 67 (?
+                </p>
 
-        {currentView === 'letter' && (
-          <div className="readme-page w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn" onClick={(e) => e.stopPropagation()}>
-            <div className="w-full flex justify-start mb-4">
+                {/* 杜杜醬照片展示 */}
+                <div className="pt-3 pl-4 sm:pl-6">
+                  <div
+                    className={`inline-block p-2 border-2 ${
+                      isDark ? 'border-white/60 bg-white/5' : 'border-black/60 bg-black/5'
+                    }`}
+                  >
+                    <img
+                      src={getPhotoSrc('image_5a5fbb91.png')}
+                      alt="杜杜醬的美照"
+                      className="max-w-[200px] sm:max-w-[240px] w-full h-auto object-contain block select-none"
+                      loading="lazy"
+                    />
+                    <div className="pt-2 text-[10px] sm:text-xs opacity-60 text-center tracking-wider font-mono">
+                      [ 杜杜醬 (•ˋ _ ˊ•) ]
+                    </div>
+                  </div>
+                </div>
+
+                {/* 結尾 list 指令框框提示 (純文字 highlight 框框，無超連結) */}
+                <p className="pt-4 opacity-90">
+                  喔對了.... 可以使用 <code className={`font-bold px-1.5 py-0.5 border mx-0.5 inline-block ${isDark ? 'border-white text-white' : 'border-black text-black'}`}>list</code> 能看到有點過的路徑喔
+                </p>
+              </div>
+            </div>
+
+            {/* Bottom Letter Footer / Divider */}
+            <div className="readme-footer readme-footer-hidden pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
+              <span>END OF LETTER</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* VIEW 6: Pure Black Directory / Log View (純黑無框資料夾目錄) */}
+      {currentView === 'list' && (
+        <div 
+          className="w-full min-h-screen bg-black text-white p-6 sm:p-12 font-mono flex flex-col items-start select-none animate-fadeIn"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Top Bar: Return Button & Mini Command Input */}
+          <div className="w-full max-w-lg mb-8 space-y-3">
+            <div className="flex items-center justify-between">
               <button
                 type="button"
-                onClick={() => setCurrentView('terminal')}
-                className={`px-3 py-1 text-xs sm:text-sm border-2 cursor-pointer font-bold tracking-wider uppercase transition-transform active:translate-y-0.5 ${
-                  isDark
-                    ? 'border-white hover:bg-white hover:text-black bg-black text-white'
-                    : 'border-black hover:bg-black hover:text-white bg-white text-black'
-                }`}
+                onClick={() => {
+                  setCurrentView('terminal');
+                  setHintMessage(null);
+                }}
+                className="px-2.5 py-1 text-xs sm:text-sm border border-white/60 hover:border-white hover:bg-white hover:text-black cursor-pointer font-bold tracking-wider uppercase transition-colors"
                 title="返回 (Esc)"
               >
                 [ ◄ 返回 ]
               </button>
             </div>
 
-            <div className={`readme-paper w-full border-2 p-6 sm:p-10 relative theme-transition ${isDark ? 'border-white bg-black' : 'border-black bg-white'}`}>
-              <span aria-hidden="true" className="readme-border-top pointer-events-none z-20" style={{ backgroundColor: isDark ? '#ffffff' : '#000000' }} />
-              <span aria-hidden="true" className="readme-border-left pointer-events-none z-20" style={{ backgroundColor: isDark ? '#ffffff' : '#000000' }} />
-              <span aria-hidden="true" className="readme-border-right pointer-events-none z-20" style={{ backgroundColor: isDark ? '#ffffff' : '#000000' }} />
-              <span aria-hidden="true" className="readme-border-bottom pointer-events-none z-20" style={{ backgroundColor: isDark ? '#ffffff' : '#000000' }} />
+            {/* Mini Command Input Bar for List View */}
+            <form onSubmit={handleMiniSubmit} className="relative flex items-center w-full" onClick={(e) => e.stopPropagation()}>
+              <span className="mr-2 text-xs font-bold opacity-70">&gt;</span>
+              <input
+                type="text"
+                value={miniInputValue}
+                onChange={(e) => setMiniInputValue(e.target.value)}
+                placeholder="輸入指令..."
+                spellCheck={false}
+                className="w-full text-xs sm:text-sm py-1.5 px-3 bg-black border border-white/40 focus:border-white outline-none font-mono tracking-wider placeholder-white/30 text-white"
+              />
+            </form>
 
-              <div className="flex items-center justify-between border-b pb-4 mb-6">
-                <span className="readme-title-hidden text-xl sm:text-2xl font-bold tracking-wider">README</span>
-              </div>
-
-              <div className="readme-letter-content min-h-[220px] sm:min-h-[280px] font-mono leading-relaxed text-xs sm:text-sm space-y-3.5">
-                <p className="font-bold text-sm sm:text-base">
-                  親愛的玩家，歡迎來到沉浸式推理解謎遊戲 <span className="underline underline-offset-4 decoration-1">《K33P_1t_S1mpl3》</span>！o(////▽////)q
-                </p>
-
-                <p>
-                  我是你的 專屬助理 —— <strong className="font-bold">咪喵醬</strong> (￣▽￣)”
-                </p>
-
-                <p>
-                  這封信件裡包含了一些最基本的常用指令跟快鍵，至於更高階的嘛……就要靠你自己去其他神祕文件中發掘囉！（＾-＾）
-                </p>
-
-                <p className="opacity-90 italic">
-                  偷偷偷告訴你 ~不墨守成規的 咪喵醬 常常觸發意想不到的小驚喜喔？ (//ˋ _ ˊ//)
-                </p>
-
-                <p>
-                  好啦！「User」這個稱呼實在太沒個性了……<br />
-                  快使用下方指令，給自己取個特別的專屬代號吧！( •̀ ω •́ )
-                </p>
-
-                <p className="py-1">
-                  <span className="font-bold">指令：</span>
-                  <code className="readme-command-frame font-bold px-1.5 py-0.5 border tracking-wider ml-1 inline-block">
-                    name &lt;目前名字&gt; &lt;新名字&gt;
-                  </code>
-                </p>
-
-                <p>
-                  當然！還有其他超酷的魔法喔 
-                </p>
-
-                <p>
-                  用 <code className="readme-command-frame font-bold px-1.5 py-0.5 border mx-0.5 inline-block">theme</code> 或 <code className="readme-command-frame font-bold px-1.5 py-0.5 border mx-0.5 inline-block">list</code> 來切換黑白視覺與查看檔案清單喔！
-                </p>
-
-                <p>
-                  如果出現 <span className={`font-bold inline-block ${isDark ? 'text-[#fef08a]' : 'text-[#854d0e] bg-[#fef9c3] px-1 border border-[#facc15]/60'}`}>黃色</span> 的字體時，代表這裡有可互動的線索或入口，別錯過哦！
-                </p>
-
-                <p className="pt-1">
-                  迷路時也別擔心，按一下 <kbd className="readme-command-frame font-bold px-1.5 py-0.5 border mx-0.5 inline-block">Esc</kbd> 就能一秒回到輸入欄啦 (๑•̀ㅂ•́)و✧
-                </p>
-
-                <p className="pt-2">
-                  OK 那麼親愛的 <strong className="font-bold">{userName}</strong> 歡迎來到我們創造的世界、聽一個有趣故事 <code className="readme-command-frame readme-command-disabled font-bold px-1.5 py-0.5 border mx-0.5 inline-block">simple</code>。
-                </p>
-              </div>
-
-              <div className="readme-footer readme-footer-hidden pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
-                <span>END OF LETTER</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {currentView === 'list' && (
-          <div className={`w-full min-h-screen p-6 sm:p-12 font-mono flex flex-col items-start select-none animate-fadeIn ${isDark ? 'bg-black text-white' : 'bg-white text-black'}`} onClick={(e) => e.stopPropagation()}>
-            <div className="w-full max-w-lg mb-8 space-y-3">
-              <div className="flex items-center justify-between">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCurrentView('terminal');
-                    setHintMessage(null);
-                  }}
-                  className={`px-2.5 py-1 text-xs sm:text-sm border cursor-pointer font-bold tracking-wider uppercase transition-colors ${
-                    isDark
-                      ? 'border-white/60 hover:border-white hover:bg-white hover:text-black text-white'
-                      : 'border-black/40 hover:border-black hover:bg-black hover:text-white text-black'
-                  }`}
-                  title="返回 (Esc)"
-                >
-                  [ ◄ 返回 ]
-                </button>
-              </div>
-
-              <form onSubmit={handleMiniSubmit} className="relative flex items-center w-full" onClick={(e) => e.stopPropagation()}>
-                <span className={`mr-2 text-xs font-bold opacity-70 ${isDark ? 'text-white' : 'text-black'}`}>&gt;</span>
-                <input
-                  type="text"
-                  value={miniInputValue}
-                  onChange={(e) => setMiniInputValue(e.target.value)}
-                  placeholder="輸入指令..."
-                  spellCheck={false}
-                  className={`w-full text-xs sm:text-sm py-1.5 px-3 border outline-none font-mono tracking-wider ${
-                    isDark
-                      ? 'bg-black border-white/40 focus:border-white placeholder-white/30 text-white'
-                      : 'bg-white border-black/40 focus:border-black placeholder-black/30 text-black'
-                  }`}
-                />
-              </form>
-
-              {hintMessage && (
-                <div className={`text-xs font-mono tracking-wider animate-comfortable-blink ${isDark ? 'text-white' : 'text-black'}`}>
-                  {hintMessage}
-                </div>
-              )}
-            </div>
-
-            {unlockedItems.length === 0 ? (
-              <div className={`text-xs sm:text-sm opacity-40 tracking-wider ${isDark ? 'text-white' : 'text-black'}`}>( empty )</div>
-            ) : (
-              <div className="space-y-6 w-full max-w-lg">
-                {otherItems.length > 0 && (
-                  <div className="space-y-2">
-                    <button
-                      type="button"
-                      onClick={() => toggleFolder('others')}
-                      className={`flex items-center gap-2 text-sm sm:text-base font-bold tracking-wider cursor-pointer hover:opacity-80 transition-opacity ${isDark ? 'text-white' : 'text-black'}`}
-                    >
-                      <span className="w-3 text-center opacity-70">{collapsedFolders['others'] ? '▶' : '▼'}</span>
-                      <span>[ {getFolderDisplayName('others')} ]</span>
-                    </button>
-
-                    {!collapsedFolders['others'] && (
-                      <div className={`pl-6 ml-1.5 border-l space-y-1.5 ${isDark ? 'border-white/20' : 'border-black/20'}`}>
-                        {otherItems.map(item => (
-                          <div key={item.id}>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setPreviousView('list');
-                                setCurrentView(item.view);
-                              }}
-                              className={`cursor-pointer text-xs sm:text-sm tracking-wider hover:underline transition-colors py-0.5 block text-left ${isDark ? 'text-white/90 hover:text-white' : 'text-black/80 hover:text-black'}`}
-                            >
-                              {item.cmd}
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {inspectItems.length > 0 && (
-                  <div className="space-y-2">
-                    <button
-                      type="button"
-                      onClick={() => toggleFolder('inspect')}
-                      className={`flex items-center gap-2 text-sm sm:text-base font-bold tracking-wider cursor-pointer hover:opacity-80 transition-opacity ${isDark ? 'text-white' : 'text-black'}`}
-                    >
-                      <span className="w-3 text-center opacity-70">{collapsedFolders['inspect'] ? '▶' : '▼'}</span>
-                      <span>[ {getFolderDisplayName('inspect')} ]</span>
-                    </button>
-
-                    {!collapsedFolders['inspect'] && (
-                      <div className={`pl-6 ml-1.5 border-l space-y-1.5 ${isDark ? 'border-white/20' : 'border-black/20'}`}>
-                        {inspectItems.map(item => (
-                          <div key={item.id}>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setPreviousView('list');
-                                setCurrentView(item.view);
-                              }}
-                              className={`cursor-pointer text-xs sm:text-sm tracking-wider hover:underline transition-colors py-0.5 block text-left ${isDark ? 'text-white/90 hover:text-white' : 'text-black/80 hover:text-black'}`}
-                            >
-                              {item.cmd}
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {sortedPrefixes.map(prefix => {
-                  const items = chapterGroups[prefix] || [];
-                  const isCollapsed = !!collapsedFolders[prefix];
-                  return (
-                    <div key={prefix} className="space-y-2">
-                      <button
-                        type="button"
-                        onClick={() => toggleFolder(prefix)}
-                        className={`flex items-center gap-2 text-sm sm:text-base font-bold tracking-wider cursor-pointer hover:opacity-80 transition-opacity ${isDark ? 'text-white' : 'text-black'}`}
-                      >
-                        <span className="w-3 text-center opacity-70">{isCollapsed ? '▶' : '▼'}</span>
-                        <span>[ {getFolderDisplayName(prefix)} ]</span>
-                      </button>
-
-                      {!isCollapsed && (
-                        <div className={`pl-6 ml-1.5 border-l space-y-1.5 ${isDark ? 'border-white/20' : 'border-black/20'}`}>
-                          {items.map(item => (
-                            <div key={item.id}>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setPreviousView('list');
-                                  setCurrentView(item.view);
-                                }}
-                                className={`cursor-pointer text-xs sm:text-sm tracking-wider hover:underline transition-colors py-0.5 block text-left ${isDark ? 'text-white/90 hover:text-white' : 'text-black/80 hover:text-black'}`}
-                              >
-                                {item.cmd}
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+            {/* Hint message in list view (改為純白提示，黃色專供 inspect 物件使用) */}
+            {hintMessage && (
+              <div className="text-xs font-mono tracking-wider text-white animate-comfortable-blink">
+                {hintMessage}
               </div>
             )}
           </div>
-        )}
-      </div>
+
+          {/* Directory Tree */}
+          {unlockedItems.length === 0 ? (
+            <div className="text-xs sm:text-sm opacity-40 tracking-wider">
+              ( empty )
+            </div>
+          ) : (
+            <div className="space-y-6 w-full max-w-lg">
+              {/* 1. Top Group: Other text commands (最頂端其他文字指令) */}
+              {otherItems.length > 0 && (
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => toggleFolder('others')}
+                    className="flex items-center gap-2 text-sm sm:text-base font-bold tracking-wider cursor-pointer hover:opacity-80 transition-opacity"
+                  >
+                    <span className="w-3 text-center opacity-70">{collapsedFolders['others'] ? '▶' : '▼'}</span>
+                    <span>[ {getFolderDisplayName('others')} ]</span>
+                  </button>
+
+                  {!collapsedFolders['others'] && (
+                    <div className="pl-6 ml-1.5 border-l border-white/20 space-y-1.5">
+                      {otherItems.map(item => (
+                        <div key={item.id}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPreviousView('list');
+                              setCurrentView(item.view);
+                            }}
+                            className="cursor-pointer text-xs sm:text-sm tracking-wider text-white/90 hover:underline hover:text-white transition-colors py-0.5 block text-left"
+                          >
+                            {item.cmd}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 2. Inspect Commands Group (調查物件專屬資料夾) */}
+              {inspectItems.length > 0 && (
+                <div className="space-y-2">
+                  <button
+                    type="button"
+                    onClick={() => toggleFolder('inspect')}
+                    className="flex items-center gap-2 text-sm sm:text-base font-bold tracking-wider cursor-pointer hover:opacity-80 transition-opacity"
+                  >
+                    <span className="w-3 text-center opacity-70">{collapsedFolders['inspect'] ? '▶' : '▼'}</span>
+                    <span>[ {getFolderDisplayName('inspect')} ]</span>
+                  </button>
+
+                  {!collapsedFolders['inspect'] && (
+                    <div className="pl-6 ml-1.5 border-l border-white/20 space-y-1.5">
+                      {inspectItems.map(item => (
+                        <div key={item.id}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPreviousView('list');
+                              setCurrentView(item.view);
+                            }}
+                            className="cursor-pointer text-xs sm:text-sm tracking-wider text-white/90 hover:underline hover:text-white transition-colors py-0.5 block text-left"
+                          >
+                            {item.cmd}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 3. Numbered Chapter Groups: 01, 02, 03... */}
+              {sortedPrefixes.map(prefix => {
+                const items = chapterGroups[prefix] || [];
+                const isCollapsed = !!collapsedFolders[prefix];
+                return (
+                  <div key={prefix} className="space-y-2">
+                    <button
+                      type="button"
+                      onClick={() => toggleFolder(prefix)}
+                      className="flex items-center gap-2 text-sm sm:text-base font-bold tracking-wider cursor-pointer hover:opacity-80 transition-opacity"
+                    >
+                      <span className="w-3 text-center opacity-70">{isCollapsed ? '▶' : '▼'}</span>
+                      <span>[ {getFolderDisplayName(prefix)} ]</span>
+                    </button>
+
+                    {!isCollapsed && (
+                      <div className="pl-6 ml-1.5 border-l border-white/20 space-y-1.5">
+                        {items.map(item => (
+                          <div key={item.id}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPreviousView('list');
+                                setCurrentView(item.view);
+                              }}
+                              className="cursor-pointer text-xs sm:text-sm tracking-wider text-white/90 hover:underline hover:text-white transition-colors py-0.5 block text-left"
+                            >
+                              {item.cmd}
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
     </>
   );
 }
