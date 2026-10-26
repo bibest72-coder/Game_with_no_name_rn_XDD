@@ -883,7 +883,7 @@ export default function App() {
         .readme-footer-hidden { visibility: hidden; }
         .readme-command-frame { border-color: transparent !important; outline: none !important; position: relative; }
         .readme-command-frame:not(.readme-frame-draw) { box-shadow: none !important; }
-        .readme-command-frame.readme-frame-draw::before { content: ""; position: absolute; inset: -2px; border: 1px solid currentColor; pointer-events: none; animation: readmeCommandFrameDraw .55s linear forwards; }
+        .readme-command-frame.readme-frame-draw::before { content: ""; position: absolute; inset: -2px; border: 1px solid currentColor; pointer-events: none; animation: readmeCommandFrameDraw .55s ease-out both; }
         @keyframes readmeCommandFrameDraw { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
         .readme-command-frame.readme-command-disabled { pointer-events: none !important; cursor: default !important; opacity: .72; }
         .readme-title-hidden { visibility: hidden; }
@@ -900,26 +900,24 @@ export default function App() {
       <div
         onClick={handleGlobalClick}
         className={`min-h-screen w-full flex flex-col items-center justify-start font-mono select-none theme-transition cursor-text ${
-          currentView === 'list' || isDark ? 'theme-dark bg-black text-white' : 'theme-light bg-white text-black'
+          isDark ? 'theme-dark bg-black text-white' : 'theme-light bg-white text-black'
         }`}
       >
-        {currentView !== 'list' && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleTheme();
-            }}
-            className={`fixed top-6 right-6 px-3 py-1 text-xs sm:text-sm border-2 cursor-pointer font-bold tracking-wider uppercase transition-transform active:translate-y-0.5 z-50 ${
-              isDark
-                ? 'border-white hover:bg-white hover:text-black bg-black text-white'
-                : 'border-black hover:bg-black hover:text-white bg-white text-black'
-            }`}
-            title="切換黑白模式 (快捷鍵: Ctrl+T)"
-          >
-            {isDark ? '[ SWITCH TO WHITE ]' : '[ SWITCH TO BLACK ]'}
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleTheme();
+          }}
+          className={`fixed top-6 right-6 px-3 py-1 text-xs sm:text-sm border-2 cursor-pointer font-bold tracking-wider uppercase transition-transform active:translate-y-0.5 z-50 ${
+            isDark
+              ? 'border-white hover:bg-white hover:text-black bg-black text-white'
+              : 'border-black hover:bg-black hover:text-white bg-white text-black'
+          }`}
+          title="切換黑白模式 (快捷鍵: Ctrl+T)"
+        >
+          {isDark ? '[ SWITCH TO WHITE ]' : '[ SWITCH TO BLACK ]'}
+        </button>
 
         {currentView === 'terminal' && (
           <div className="w-full max-w-xl flex flex-col items-center px-4 relative">
@@ -1057,299 +1055,20 @@ export default function App() {
                 </p>
 
                 <p>
-                  用 <code className="readme-command-frame font-bold px-1.5 py-0.5 border mx-0.5 inline-block">theme</code> 或 <code className="readme-command-frame font-bold px-1.5 py-0.5 border mx-0.5 inline-block">black</code> / <code className="readme-command-frame font-bold px-1.5 py-0.5 border mx-0.5 inline-block">white</code> 來切換顏色。
+                  用 <code className="readme-command-frame font-bold px-1.5 py-0.5 border mx-0.5 inline-block">theme</code> 或 <code className="readme-command-frame font-bold px-1.5 py-0.5 border mx-0.5 inline-block">list</code> 來切換黑白視覺與查看檔案清單喔！
                 </p>
 
                 <p>
-                  如果出現 <span className={`font-bold inline-block ${isDark ? 'text-[#fef08a]' : 'text-[#854d0e] bg-[#fef9c3] px-1 border border-[#facc15]/60'}`}>黃色</span> 的字體時，代表這裡可能藏有關鍵線索。
+                  如果出現 <span className={`font-bold inline-block ${isDark ? 'text-[#fef08a]' : 'text-[#854d0e] bg-[#fef9c3] px-1 border border-[#facc15]/60'}`}>黃色</span> 的字體時，代表這裡有可互動的線索或入口，別錯過哦！
                 </p>
 
                 <p className="pt-1">
-                  迷路時也別擔心，按一下 <kbd className="readme-command-frame font-bold px-1.5 py-0.5 border mx-0.5 inline-block">Esc</kbd> 就能一秒回到輸入欄啦 (๑•̀ㅂ��[...]
+                  迷路時也別擔心，按一下 <kbd className="readme-command-frame font-bold px-1.5 py-0.5 border mx-0.5 inline-block">Esc</kbd> 就能一秒回到輸入欄啦 (๑•̀ㅂ•́)و✧
                 </p>
 
                 <p className="pt-2">
-                  OK 那麼親愛的 <strong className="font-bold">{userName}</strong> 歡迎來到我們創造的世界、聽一個有趣故事 <code className="readme-command-frame readme-command-disabled font-bold px-1.5 py-0.5 border mx-0.5 inline-block">01_GR_1</code>。
+                  OK 那麼親愛的 <strong className="font-bold">{userName}</strong> 歡迎來到我們創造的世界、聽一個有趣故事 <code className="readme-command-frame readme-command-disabled font-bold px-1.5 py-0.5 border mx-0.5 inline-block">simple</code>。
                 </p>
-              </div>
-
-              <div className="readme-footer readme-footer-hidden pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
-                <span>END OF LETTER</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {currentView === 'easter_egg' && (
-          <div className="readme-page w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn" onClick={(e) => e.stopPropagation()}>
-            <div className="w-full flex justify-start mb-4">
-              <button
-                type="button"
-                onClick={() => setCurrentView('terminal')}
-                className={`px-3 py-1 text-xs sm:text-sm border-2 cursor-pointer font-bold tracking-wider uppercase transition-transform active:translate-y-0.5 ${
-                  isDark
-                    ? 'border-white hover:bg-white hover:text-black bg-black text-white'
-                    : 'border-black hover:bg-black hover:text-white bg-white text-black'
-                }`}
-                title="返回 (Esc)"
-              >
-                [ ◄ 返回 ]
-              </button>
-            </div>
-
-            <div className={`w-full border-2 p-6 sm:p-10 relative theme-transition ${isDark ? 'border-white bg-black' : 'border-black bg-white'}`}>
-              <div className="flex items-center justify-between border-b pb-4 mb-6">
-                <span className="text-xl sm:text-2xl font-bold tracking-wider">K33P_1t_S1mpl3</span>
-              </div>
-
-              <div className="min-h-[220px] sm:min-h-[280px] font-mono leading-relaxed text-xs sm:text-sm space-y-3.5">
-                {/* 請在此處放入您未來的彩蛋內容 */}
-              </div>
-
-              <div className="readme-footer readme-footer-hidden pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
-                <span>END OF LETTER</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {currentView === 'doc_01_gr_1' && (
-          <div className="readme-page w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn" onClick={(e) => e.stopPropagation()}>
-            <div className="w-full flex justify-start mb-4">
-              <button
-                type="button"
-                onClick={() => setCurrentView('terminal')}
-                className={`px-3 py-1 text-xs sm:text-sm border-2 cursor-pointer font-bold tracking-wider uppercase transition-transform active:translate-y-0.5 ${
-                  isDark
-                    ? 'border-white hover:bg-white hover:text-black bg-black text-white'
-                    : 'border-black hover:bg-black hover:text-white bg-white text-black'
-                }`}
-                title="返回 (Esc)"
-              >
-                [ ◄ 返回 ]
-              </button>
-            </div>
-
-            <div className={`w-full border-2 p-6 sm:p-10 relative theme-transition ${isDark ? 'border-white bg-black' : 'border-black bg-white'}`}>
-              <div className="flex items-center justify-between border-b pb-4 mb-6">
-                <span className="text-xl sm:text-2xl font-bold tracking-wider">01_GR_1</span>
-              </div>
-
-              <div className="min-h-[220px] sm:min-h-[280px] font-mono leading-relaxed text-xs sm:text-sm space-y-3.5">
-                <p>狂風裹挾著暴雨，像無數細針砸在視線裡。</p>
-                <p>雨水順著我的額頭滑進眼睛，刺得發痛。</p>
-                <p>
-                  獨自走在幾乎要被黑暗吞噬的 <strong className="font-bold">綠嶺小徑</strong>（<strong className="font-bold italic">Green Summit Way</strong>）時，我隱約看見一道微弱的燈光。
-                </p>
-                <p>
-                  門口掛著一盞搖搖欲墜的油燈，映出四個字 ——「
-                  <span
-                    onClick={() => {
-                      setPreviousView('doc_01_gr_1');
-                      setCurrentView('letter_ridge_lodge');
-                    }}
-                    className={`inline-block font-bold cursor-pointer transition-colors underline decoration-dotted underline-offset-4 ${
-                      isDark
-                        ? 'text-[#fef08a] hover:text-[#fffbeb]'
-                        : 'text-[#854d0e] bg-[#fef9c3] px-1 border border-[#facc15]/60 hover:bg-[#fef08a]'
-                    }`}
-                    title="可調查物件：點擊或輸入 inspect_ri 進行互動"
-                  >
-                    山脊旅店 (<span className="italic">Ridge Lodge</span>)
-                  </span>
-                  」。
-                </p>
-                <p>
-                  <strong className="font-bold">瑪拉</strong>衝上階梯，站在沉重的木門前，抬手緊握銅環。
-                </p>
-                <p className="tracking-widest">叩、叩、叩 ———</p>
-                <p>沒有回應。只有風聲與雨水砸在屋頂上的巨響。</p>
-                <p>她再次發力敲擊。這次，門內傳來了拖沓的腳步聲。</p>
-                <p className="tracking-widest">「吱呀——」</p>
-              </div>
-
-              <div className="readme-footer readme-footer-hidden pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
-                <span>END OF LETTER</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {currentView === 'letter_ridge_lodge' && (
-          <div className="readme-page w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn" onClick={(e) => e.stopPropagation()}>
-            <div className="w-full flex justify-start mb-4">
-              <button
-                type="button"
-                onClick={handleBack}
-                className={`px-3 py-1 text-xs sm:text-sm border-2 cursor-pointer font-bold tracking-wider uppercase transition-transform active:translate-y-0.5 ${
-                  isDark
-                    ? 'border-white hover:bg-white hover:text-black bg-black text-white'
-                    : 'border-black hover:bg-black hover:text-white bg-white text-black'
-                }`}
-                title="返回 (Esc)"
-              >
-                [ ◄ 返回 ]
-              </button>
-            </div>
-
-            <div className={`w-full border-2 p-6 sm:p-10 relative theme-transition ${isDark ? 'border-white bg-black' : 'border-black bg-white'}`}>
-              <div className="flex items-center justify-between border-b pb-4 mb-6">
-                <span className="text-xl sm:text-2xl font-bold tracking-wider">山脊旅店 (Ridge Lodge)</span>
-              </div>
-
-              <div className="min-h-[220px] sm:min-h-[280px] font-mono leading-relaxed text-xs sm:text-sm space-y-3.5">
-                {/* 請在此處放入您未來的山脊旅店內容 */}
-              </div>
-
-              <div className="readme-footer readme-footer-hidden pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
-                <span>END OF LETTER</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {currentView === 'letter_shiminaseo' && (
-          <div className="readme-page w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn" onClick={(e) => e.stopPropagation()}>
-            <div className="w-full flex justify-start mb-4">
-              <button
-                type="button"
-                onClick={handleBack}
-                className={`px-3 py-1 text-xs sm:text-sm border-2 cursor-pointer font-bold tracking-wider uppercase transition-transform active:translate-y-0.5 ${
-                  isDark
-                    ? 'border-white hover:bg-white hover:text-black bg-black text-white'
-                    : 'border-black hover:bg-black hover:text-white bg-white text-black'
-                }`}
-                title="返回 (Esc)"
-              >
-                [ ◄ 返回 ]
-              </button>
-            </div>
-
-            <div className={`w-full border-2 p-6 sm:p-10 relative theme-transition ${isDark ? 'border-white bg-black' : 'border-black bg-white'}`}>
-              <div className="flex items-center justify-between border-b pb-4 mb-6">
-                <span className="text-xl sm:text-2xl font-bold tracking-wider">尸米那誰喔 (Shiminaseo)</span>
-              </div>
-
-              <div className="min-h-[220px] sm:min-h-[280px] font-mono leading-relaxed text-xs sm:text-sm space-y-3.5">
-                <p>
-                  <span className={`inline-block font-bold ${isDark ? 'text-[#7dd3fc]' : 'text-[#1d4ed8]'}`}>
-                    {name6}
-                  </span>
-                  ：你是從哪裡來的? 你是怎麼來的?
-                </p>
-                <p className="pl-4 sm:pl-6 opacity-90">
-                  你知不知道可以用 <code className={`font-bold px-1.5 py-0.5 border mx-0.5 inline-block ${isDark ? 'border-white text-white' : 'border-black text-black'}`}>inspect_sh</code> 來調查我？
-                </p>
-                <p className="pl-4 sm:pl-6 opacity-90">好的現在你知道了~親~ :D</p>
-
-                <div className="pt-3 pb-1 pl-4 sm:pl-6 opacity-80 tracking-wider">ㄅ一 ㄅ一   迎來到 苡萱醬小課堂 ~</div>
-
-                <p className="pt-1">
-                  <span className={`inline-block font-bold ${isDark ? 'text-[#7dd3fc]' : 'text-[#1d4ed8]'}`}>
-                    {name6}
-                  </span>
-                  ： 尸米那誰喔 is すみません (•ˋ _ ˊ•)
-                </p>
-                <p className="pl-4 sm:pl-6 opacity-90">{'意思是 失禮了、不好意思 (>⇀᷿<)'}</p>
-                <p className="pl-4 sm:pl-6 opacity-90">QQ</p>
-                <p className="pl-4 sm:pl-6 opacity-90 pt-1">但前兩個字是 苡萱醬的食物~ </p>
-                <p className="pl-4 sm:pl-6 opacity-90">啾咪~ (/▽＼)</p>
-              </div>
-
-              <div className="readme-footer readme-footer-hidden pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
-                <span>END OF LETTER</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {currentView === 'doc_01_te_67' && (
-          <div className="readme-page w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn" onClick={(e) => e.stopPropagation()}>
-            <div className="w-full flex justify-start mb-4">
-              <button
-                type="button"
-                onClick={handleBack}
-                className={`px-3 py-1 text-xs sm:text-sm border-2 cursor-pointer font-bold tracking-wider uppercase transition-transform active:translate-y-0.5 ${
-                  isDark
-                    ? 'border-white hover:bg-white hover:text-black bg-black text-white'
-                    : 'border-black hover:bg-black hover:text-white bg-white text-black'
-                }`}
-                title="返回 (Esc)"
-              >
-                [ ◄ 返回 ]
-              </button>
-            </div>
-
-            <div className={`w-full border-2 p-6 sm:p-10 relative theme-transition ${isDark ? 'border-white bg-black' : 'border-black bg-white'}`}>
-              <div className="flex items-center justify-between border-b pb-4 mb-6">
-                <span className="text-xl sm:text-2xl font-bold tracking-wider">01_TE_67</span>
-              </div>
-
-              <div className="min-h-[220px] sm:min-h-[280px] font-mono leading-relaxed text-xs sm:text-sm space-y-3.5">
-                <p>
-                  <span className={`inline-block font-bold ${isDark ? 'text-[#7dd3fc]' : 'text-[#1d4ed8]'}`}>
-                    {name6}
-                  </span>
-                  ： 哈喽 大家好 我是苡萱醬 ~~~ o(*////▽////*)q
-                </p>
-                <p className="pl-4 sm:pl-6 opacity-90">
-                  我喜歡吃...{' '}
-                  <span
-                    onClick={() => {
-                      setPreviousView('doc_01_te_67');
-                      setCurrentView('letter_shiminaseo');
-                    }}
-                    className={`inline-block font-bold cursor-pointer transition-colors underline decoration-dotted underline-offset-4 ${isDark ? 'text-[#fef08a] hover:text-[#fffbeb]' : 'text-[#854d0e] bg-[#fef9c3] px-1 border border-[#facc15]/60 hover:bg-[#fef08a]'}`}
-                    title="可調查物件：點擊或輸入 inspect_sh 進行互動"
-                  >
-                    尸米那誰喔 (<span className="italic">Shiminaseo</span>)
-                  </span>
-                  {' '}(? www 
-                </p>
-                <p className="pl-4 sm:pl-6 opacity-90">嘿嘿嘿 以下是我的美照 (❁´◡`❁)</p>
-
-                <div className="pt-4 pl-4 sm:pl-6">
-                  <div className={`inline-block p-2 border-2 ${isDark ? 'border-white/60 bg-white/5' : 'border-black/60 bg-black/5'}`}>
-                    <img
-                      src={getPhotoSrc('image_fd2bab39.png')}
-                      alt="苡萱醬的美照"
-                      className="max-w-[260px] sm:max-w-[320px] w-full h-auto object-contain block select-none"
-                      loading="lazy"
-                    />
-                    <div className="pt-2 text-[10px] sm:text-xs opacity-60 text-center tracking-wider font-mono">
-                      [ 苡萱醬的美照 (❁´◡`❁) ]
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-6 space-y-3.5 border-t border-dashed opacity-95">
-                  <p>
-                    <span className={`inline-block font-bold ${isDark ? 'text-[#7dd3fc]' : 'text-[#1d4ed8]'}`}>
-                      {name7}
-                    </span>
-                    ：大家好~ 我是杜杜醬~ (•ˋ _ ˊ•)
-                  </p>
-                  <p className="pl-4 sm:pl-6 opacity-90">我是過來湊數的 ￣へ￣</p>
-                  <p className="pl-4 sm:pl-6 opacity-90">因為咪喵醬希望路徑最後有 67 (? </p>
-
-                  <div className="pt-3 pl-4 sm:pl-6">
-                    <div className={`inline-block p-2 border-2 ${isDark ? 'border-white/60 bg-white/5' : 'border-black/60 bg-black/5'}`}>
-                      <img
-                        src={getPhotoSrc('image_5a5fbb91.png')}
-                        alt="杜杜醬的美照"
-                        className="max-w-[200px] sm:max-w-[240px] w-full h-auto object-contain block select-none"
-                        loading="lazy"
-                      />
-                      <div className="pt-2 text-[10px] sm:text-xs opacity-60 text-center tracking-wider font-mono">
-                        [ 杜杜醬 (•ˋ _ ˊ•) ]
-                      </div>
-                    </div>
-                  </div>
-
-                  <p className="pt-4 opacity-90">
-                    喔對了.... 可以使用 <code className={`font-bold px-1.5 py-0.5 border mx-0.5 inline-block ${isDark ? 'border-white text-white' : 'border-black text-black'}`}>list</code> ...
-                  </p>
-                </div>
               </div>
 
               <div className="readme-footer readme-footer-hidden pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
@@ -1360,7 +1079,7 @@ export default function App() {
         )}
 
         {currentView === 'list' && (
-          <div className="w-full min-h-screen bg-black text-white p-6 sm:p-12 font-mono flex flex-col items-start select-none animate-fadeIn" onClick={(e) => e.stopPropagation()}>
+          <div className={`w-full min-h-screen p-6 sm:p-12 font-mono flex flex-col items-start select-none animate-fadeIn ${isDark ? 'bg-black text-white' : 'bg-white text-black'}`} onClick={(e) => e.stopPropagation()}>
             <div className="w-full max-w-lg mb-8 space-y-3">
               <div className="flex items-center justify-between">
                 <button
@@ -1369,7 +1088,11 @@ export default function App() {
                     setCurrentView('terminal');
                     setHintMessage(null);
                   }}
-                  className="px-2.5 py-1 text-xs sm:text-sm border border-white/60 hover:border-white hover:bg-white hover:text-black cursor-pointer font-bold tracking-wider uppercase transition-colors"
+                  className={`px-2.5 py-1 text-xs sm:text-sm border cursor-pointer font-bold tracking-wider uppercase transition-colors ${
+                    isDark
+                      ? 'border-white/60 hover:border-white hover:bg-white hover:text-black text-white'
+                      : 'border-black/40 hover:border-black hover:bg-black hover:text-white text-black'
+                  }`}
                   title="返回 (Esc)"
                 >
                   [ ◄ 返回 ]
@@ -1377,26 +1100,30 @@ export default function App() {
               </div>
 
               <form onSubmit={handleMiniSubmit} className="relative flex items-center w-full" onClick={(e) => e.stopPropagation()}>
-                <span className="mr-2 text-xs font-bold opacity-70">&gt;</span>
+                <span className={`mr-2 text-xs font-bold opacity-70 ${isDark ? 'text-white' : 'text-black'}`}>&gt;</span>
                 <input
                   type="text"
                   value={miniInputValue}
                   onChange={(e) => setMiniInputValue(e.target.value)}
                   placeholder="輸入指令..."
                   spellCheck={false}
-                  className="w-full text-xs sm:text-sm py-1.5 px-3 bg-black border border-white/40 focus:border-white outline-none font-mono tracking-wider placeholder-white/30 text-white"
+                  className={`w-full text-xs sm:text-sm py-1.5 px-3 border outline-none font-mono tracking-wider ${
+                    isDark
+                      ? 'bg-black border-white/40 focus:border-white placeholder-white/30 text-white'
+                      : 'bg-white border-black/40 focus:border-black placeholder-black/30 text-black'
+                  }`}
                 />
               </form>
 
               {hintMessage && (
-                <div className="text-xs font-mono tracking-wider text-white animate-comfortable-blink">
+                <div className={`text-xs font-mono tracking-wider animate-comfortable-blink ${isDark ? 'text-white' : 'text-black'}`}>
                   {hintMessage}
                 </div>
               )}
             </div>
 
             {unlockedItems.length === 0 ? (
-              <div className="text-xs sm:text-sm opacity-40 tracking-wider">( empty )</div>
+              <div className={`text-xs sm:text-sm opacity-40 tracking-wider ${isDark ? 'text-white' : 'text-black'}`}>( empty )</div>
             ) : (
               <div className="space-y-6 w-full max-w-lg">
                 {otherItems.length > 0 && (
@@ -1404,14 +1131,14 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => toggleFolder('others')}
-                      className="flex items-center gap-2 text-sm sm:text-base font-bold tracking-wider cursor-pointer hover:opacity-80 transition-opacity"
+                      className={`flex items-center gap-2 text-sm sm:text-base font-bold tracking-wider cursor-pointer hover:opacity-80 transition-opacity ${isDark ? 'text-white' : 'text-black'}`}
                     >
                       <span className="w-3 text-center opacity-70">{collapsedFolders['others'] ? '▶' : '▼'}</span>
                       <span>[ {getFolderDisplayName('others')} ]</span>
                     </button>
 
                     {!collapsedFolders['others'] && (
-                      <div className="pl-6 ml-1.5 border-l border-white/20 space-y-1.5">
+                      <div className={`pl-6 ml-1.5 border-l space-y-1.5 ${isDark ? 'border-white/20' : 'border-black/20'}`}>
                         {otherItems.map(item => (
                           <div key={item.id}>
                             <button
@@ -1420,7 +1147,7 @@ export default function App() {
                                 setPreviousView('list');
                                 setCurrentView(item.view);
                               }}
-                              className="cursor-pointer text-xs sm:text-sm tracking-wider text-white/90 hover:underline hover:text-white transition-colors py-0.5 block text-left"
+                              className={`cursor-pointer text-xs sm:text-sm tracking-wider hover:underline transition-colors py-0.5 block text-left ${isDark ? 'text-white/90 hover:text-white' : 'text-black/80 hover:text-black'}`}
                             >
                               {item.cmd}
                             </button>
@@ -1436,14 +1163,14 @@ export default function App() {
                     <button
                       type="button"
                       onClick={() => toggleFolder('inspect')}
-                      className="flex items-center gap-2 text-sm sm:text-base font-bold tracking-wider cursor-pointer hover:opacity-80 transition-opacity"
+                      className={`flex items-center gap-2 text-sm sm:text-base font-bold tracking-wider cursor-pointer hover:opacity-80 transition-opacity ${isDark ? 'text-white' : 'text-black'}`}
                     >
                       <span className="w-3 text-center opacity-70">{collapsedFolders['inspect'] ? '▶' : '▼'}</span>
                       <span>[ {getFolderDisplayName('inspect')} ]</span>
                     </button>
 
                     {!collapsedFolders['inspect'] && (
-                      <div className="pl-6 ml-1.5 border-l border-white/20 space-y-1.5">
+                      <div className={`pl-6 ml-1.5 border-l space-y-1.5 ${isDark ? 'border-white/20' : 'border-black/20'}`}>
                         {inspectItems.map(item => (
                           <div key={item.id}>
                             <button
@@ -1452,7 +1179,7 @@ export default function App() {
                                 setPreviousView('list');
                                 setCurrentView(item.view);
                               }}
-                              className="cursor-pointer text-xs sm:text-sm tracking-wider text-white/90 hover:underline hover:text-white transition-colors py-0.5 block text-left"
+                              className={`cursor-pointer text-xs sm:text-sm tracking-wider hover:underline transition-colors py-0.5 block text-left ${isDark ? 'text-white/90 hover:text-white' : 'text-black/80 hover:text-black'}`}
                             >
                               {item.cmd}
                             </button>
@@ -1471,14 +1198,14 @@ export default function App() {
                       <button
                         type="button"
                         onClick={() => toggleFolder(prefix)}
-                        className="flex items-center gap-2 text-sm sm:text-base font-bold tracking-wider cursor-pointer hover:opacity-80 transition-opacity"
+                        className={`flex items-center gap-2 text-sm sm:text-base font-bold tracking-wider cursor-pointer hover:opacity-80 transition-opacity ${isDark ? 'text-white' : 'text-black'}`}
                       >
                         <span className="w-3 text-center opacity-70">{isCollapsed ? '▶' : '▼'}</span>
                         <span>[ {getFolderDisplayName(prefix)} ]</span>
                       </button>
 
                       {!isCollapsed && (
-                        <div className="pl-6 ml-1.5 border-l border-white/20 space-y-1.5">
+                        <div className={`pl-6 ml-1.5 border-l space-y-1.5 ${isDark ? 'border-white/20' : 'border-black/20'}`}>
                           {items.map(item => (
                             <div key={item.id}>
                               <button
@@ -1487,7 +1214,7 @@ export default function App() {
                                   setPreviousView('list');
                                   setCurrentView(item.view);
                                 }}
-                                className="cursor-pointer text-xs sm:text-sm tracking-wider text-white/90 hover:underline hover:text-white transition-colors py-0.5 block text-left"
+                                className={`cursor-pointer text-xs sm:text-sm tracking-wider hover:underline transition-colors py-0.5 block text-left ${isDark ? 'text-white/90 hover:text-white' : 'text-black/80 hover:text-black'}`}
                               >
                                 {item.cmd}
                               </button>
