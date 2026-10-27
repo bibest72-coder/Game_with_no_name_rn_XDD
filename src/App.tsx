@@ -1583,17 +1583,21 @@ const playDoorSequence = async () => {
             </div>
 
             {/* Mini Command Input Bar for List View */}
-            <form onSubmit={handleMiniSubmit} className="relative flex items-center w-full" onClick={(e) => e.stopPropagation()}>
-              <span className="mr-2 text-xs font-bold opacity-70">&gt;</span>
+           <form onSubmit={handleMiniSubmit} className="relative flex items-center w-full" onClick={(e) => e.stopPropagation()}>
+              <span className={`mr-2 text-xs font-bold opacity-70 ${isDark ? 'text-white' : 'text-black'}`}>&gt;</span>
               <input
                 type="text"
                 value={miniInputValue}
                 onChange={(e) => setMiniInputValue(e.target.value)}
                 placeholder="輸入指令..."
                 spellCheck={false}
-                className="w-full text-xs sm:text-sm py-1.5 px-3 bg-black border border-white/40 focus:border-white outline-none font-mono tracking-wider placeholder-white/30 text-white"
-              />
-            </form>
+                className={`w-full text-xs sm:text-sm py-1.5 px-3 border outline-none font-mono tracking-wider ${
+                isDark
+                ? 'bg-black border-white/40 focus:border-white placeholder-white/30 text-white'
+                : 'bg-white border-black/40 focus:border-black placeholder-black/30 text-black'
+                }`}
+                />
+                </form>
 
             {/* Hint message in list view (改為純白提示，黃色專供 inspect 物件使用) */}
             {hintMessage && (
@@ -1623,22 +1627,24 @@ const playDoorSequence = async () => {
                   </button>
 
                   {!collapsedFolders['others'] && (
-                    <div className="pl-6 ml-1.5 border-l border-white/20 space-y-1.5">
-                      {otherItems.map(item => (
-                        <div key={item.id}>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setPreviousView('list');
-                              setCurrentView(item.view);
-                            }}
-                            className="cursor-pointer text-xs sm:text-sm tracking-wider text-white/90 hover:underline hover:text-white transition-colors py-0.5 block text-left"
-                          >
-                            {item.cmd}
-                          </button>
-                        </div>
-                      ))}
-                    </div>
+                <div className={`pl-6 ml-1.5 border-l ${isDark ? 'border-white/20' : 'border-black/20'} space-y-1.5`}>
+                   {otherItems.map(item => (
+                     <div key={item.id}>
+                      <button
+                         type="button"
+                        onClick={() => {
+                          setPreviousView('list');
+                          setCurrentView(item.view);
+                        }}
+                       className={`cursor-pointer text-xs sm:text-sm tracking-wider transition-colors py-0.5 block text-left ${
+                         isDark ? 'text-white/90 hover:underline hover:text-white' : 'text-black/90 hover:underline hover:text-black'
+                       }`}
+                      >
+                         {item.cmd}
+                      </button>
+                </div>
+                 ))}
+                </div>
                   )}
                 </div>
               )}
