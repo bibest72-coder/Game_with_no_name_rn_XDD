@@ -949,12 +949,11 @@ const playDoorSequence = async () => {
     <div
       onClick={handleGlobalClick}
       className={`min-h-screen w-full flex flex-col items-center justify-start font-mono select-none theme-transition cursor-text ${
-        currentView === 'list' || isDark ? 'theme-dark bg-black text-white' : 'theme-light bg-white text-black'
+      isDark ? 'theme-dark bg-black text-white' : 'theme-light bg-white text-black'
       }`}
     >
-      {/* Top-Right Theme Switch Button (在全黑 list 介面隱藏) */}
-      {currentView !== 'list' && (
-        <button
+      {/* 哪裡都有我謝謝 QQ */}
+         <button
           type="button"
           onClick={(e) => {
             e.stopPropagation();
@@ -969,7 +968,6 @@ const playDoorSequence = async () => {
         >
           {isDark ? '[ SWITCH TO WHITE ]' : '[ SWITCH TO BLACK ]'}
         </button>
-      )}
 
       {/* VIEW 1: Terminal / Input Bar View */}
       {currentView === 'terminal' && (
@@ -1563,8 +1561,10 @@ const playDoorSequence = async () => {
       {/* VIEW 6: Pure Black Directory / Log View (純黑無框資料夾目錄) */}
       {currentView === 'list' && (
         <div 
-          className="w-full min-h-screen bg-black text-white p-6 sm:p-12 font-mono flex flex-col items-start select-none animate-fadeIn"
-          onClick={(e) => e.stopPropagation()}
+          className={`w-full min-h-screen p-6 sm:p-12 font-mono flex flex-col items-start select-none animate-fadeIn ${
+                isDark ? 'bg-black text-white' : 'bg-white text-black'
+                     }`}
+             onClick={(e) => e.stopPropagation()}
         >
           {/* Top Bar: Return Button & Mini Command Input */}
           <div className="w-full max-w-lg mb-8 space-y-3">
