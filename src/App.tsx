@@ -1595,7 +1595,7 @@ const playDoorSequence = async () => {
                 onChange={(e) => setMiniInputValue(e.target.value)}
                 placeholder="輸入指令..."
                 spellCheck={false}
-                className={`w-full text-xs sm:text-sm py-1.5 px-3 border outline-none font-mono tracking-wider ${
+              className={`w-full text-xs sm:text-sm py-1.5 px-3 border outline-none font-mono tracking-wider cursor-text select-text ${
                 isDark
                 ? 'bg-black border-white/40 focus:border-white placeholder-white/30 text-white'
                 : 'bg-white border-black/40 focus:border-black placeholder-black/30 text-black'
