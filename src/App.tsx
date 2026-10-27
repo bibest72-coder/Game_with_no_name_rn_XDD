@@ -1601,7 +1601,7 @@ const playDoorSequence = async () => {
 
             {/* Hint message in list view (改為純白提示，黃色專供 inspect 物件使用) */}
             {hintMessage && (
-              <div className="text-xs font-mono tracking-wider text-white animate-comfortable-blink">
+              <div className={`text-xs font-mono tracking-wider animate-comfortable-blink ${isDark ? 'text-white' : 'text-black'}`}>
                 {hintMessage}
               </div>
             )}
