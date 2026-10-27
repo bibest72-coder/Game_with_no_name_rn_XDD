@@ -1575,7 +1575,11 @@ const playDoorSequence = async () => {
                   setCurrentView('terminal');
                   setHintMessage(null);
                 }}
-                className="px-2.5 py-1 text-xs sm:text-sm border border-white/60 hover:border-white hover:bg-white hover:text-black cursor-pointer font-bold tracking-wider uppercase transition-colors"
+                  className={`px-2.5 py-1 text-xs sm:text-sm border cursor-pointer font-bold tracking-wider uppercase transition-colors ${
+                  isDark
+                     ? 'border-white/60 hover:border-white hover:bg-white hover:text-black text-white'
+                     : 'border-black/60 hover:border-black hover:bg-black hover:text-white text-black'
+                  }`}
                 title="返回 (Esc)"
               >
                 [ ◄ 返回 ]
