@@ -948,7 +948,7 @@ const playDoorSequence = async () => {
       `}</style>
     <div
       onClick={handleGlobalClick}
-      className={`min-h-screen w-full flex flex-col items-center justify-start font-mono select-none theme-transition cursor-text ${
+      className={`min-h-screen w-full flex flex-col items-center justify-start font-mono theme-transition ${
       isDark ? 'theme-dark bg-black text-white' : 'theme-light bg-white text-black'
       }`}
     >
