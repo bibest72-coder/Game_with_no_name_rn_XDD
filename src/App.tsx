@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 type ThemeMode = 'black' | 'white';
-type ViewMode = 'terminal' | 'letter' | 'easter_egg' | 'doc_01_gr_1' | 'doc_01_te_67' | 'letter_ridge_lodge' | 'letter_shiminaseo' | 'list';
+type ViewMode = 'terminal' | 'letter' | 'easter_egg' | 'doc_01_gr_1' | 'doc_help_67' | 'letter_ridge_lodge' | 'letter_shiminaseo' | 'list';
 type IntroPhase = 'typing' | 'hold' | 'fade_out' | 'blank' | 'completed';
 
 interface LetterCatalogItem {
@@ -31,10 +31,10 @@ const LETTER_CATALOG: LetterCatalogItem[] = [
     view: 'doc_01_gr_1',
   },
   {
-    id: '01_te_67',
-    cmd: '01_TE_67',
-    title: '01_TE_67',
-    view: 'doc_01_te_67',
+    id: 'help_67',
+    cmd: 'HELP_67',
+    title: 'HELP_67',
+    view: 'doc_help_67',
   },
   {
     id: 'inspect_ri',
@@ -136,7 +136,7 @@ export default function App() {
     if (currentView === 'letter') recordLetterUnlock('simple');
     else if (currentView === 'easter_egg') recordLetterUnlock('k33p_1t_s1mpl3');
     else if (currentView === 'doc_01_gr_1') recordLetterUnlock('01_gr_1');
-    else if (currentView === 'doc_01_te_67') recordLetterUnlock('01_te_67');
+    else if (currentView === 'doc_help_67') recordLetterUnlock('help_67');
     else if (currentView === 'letter_ridge_lodge') recordLetterUnlock('inspect_ri');
     else if (currentView === 'letter_shiminaseo') recordLetterUnlock('inspect_sh');
   }, [currentView]);
@@ -146,8 +146,8 @@ export default function App() {
       setCurrentView('list');
     } else if (currentView === 'letter_ridge_lodge' && previousView === 'doc_01_gr_1') {
       setCurrentView('doc_01_gr_1');
-    } else if (currentView === 'letter_shiminaseo' && previousView === 'doc_01_te_67') {
-      setCurrentView('doc_01_te_67');
+    } else if (currentView === 'letter_shiminaseo' && previousView === 'doc_help_67') {
+      setCurrentView('doc_help_67');
     } else {
       setCurrentView('terminal');
     }
@@ -666,10 +666,10 @@ const playDoorSequence = async () => {
       setPreviousView(currentView === 'list' ? 'list' : 'terminal');
       setCurrentView('doc_01_gr_1');
       setHintMessage(null);
-    } else if (cmd === '01_te_67' || cmd === '01-te-67') {
-      // 劇情文件指令：導向 01_TE_67 劇情頁面
+    } else if (cmd === 'help_67' || cmd === 'help_67') {
+      // 劇情文件指令：導向 HELP_ˊ˙ 劇情頁面
       setPreviousView(currentView === 'list' ? 'list' : 'terminal');
-      setCurrentView('doc_01_te_67');
+      setCurrentView('doc_help_67');
       setHintMessage(null);
     } else if (cmd === 'list') {
       // 導向探索記錄目錄 (僅限 list，移除 log 指令)
@@ -1417,8 +1417,8 @@ const playDoorSequence = async () => {
         </div>
       )}
 
-      {/* VIEW: 01_TE_67 Story Document View */}
-      {currentView === 'doc_01_te_67' && (
+      {/* VIEW: HELP_67 Story Document View */}
+      {currentView === 'doc_help_67' && (
         <div 
           className="readme-page w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
           onClick={(e) => e.stopPropagation()}
@@ -1448,7 +1448,7 @@ const playDoorSequence = async () => {
             {/* Top Header */}
             <div className="flex items-center justify-between border-b pb-4 mb-6">
               <span className="text-xl sm:text-2xl font-bold tracking-wider">
-                01_TE_67
+                HELP_67
               </span>
             </div>
 
@@ -1468,7 +1468,7 @@ const playDoorSequence = async () => {
                 我喜歡吃...{' '}
                 <span
                   onClick={() => {
-                    setPreviousView('doc_01_te_67');
+                    setPreviousView('doc_help_67');
                     setCurrentView('letter_shiminaseo');
                   }}
                   className={`inline-block font-bold cursor-pointer transition-colors underline decoration-dotted underline-offset-4 ${
