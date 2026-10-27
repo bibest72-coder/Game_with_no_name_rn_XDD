@@ -1675,7 +1675,9 @@ const playDoorSequence = async () => {
                               setPreviousView('list');
                               setCurrentView(item.view);
                             }}
-                            className="cursor-pointer text-xs sm:text-sm tracking-wider text-white/90 hover:underline hover:text-white transition-colors py-0.5 block text-left"
+                            className={`cursor-pointer text-xs sm:text-sm tracking-wider transition-colors py-0.5 block text-left ${
+                                isDark ? 'text-white/90 hover:underline hover:text-white' : 'text-black/90 hover:underline hover:text-black'
+                            }`}
                           >
                             {item.cmd}
                           </button>
@@ -1711,7 +1713,9 @@ const playDoorSequence = async () => {
                                 setPreviousView('list');
                                 setCurrentView(item.view);
                               }}
-                              className="cursor-pointer text-xs sm:text-sm tracking-wider text-white/90 hover:underline hover:text-white transition-colors py-0.5 block text-left"
+                              className={`cursor-pointer text-xs sm:text-sm tracking-wider transition-colors py-0.5 block text-left ${
+                                 isDark ? 'text-white/90 hover:underline hover:text-white' : 'text-black/90 hover:underline hover:text-black'
+                               }`}
                             >
                               {item.cmd}
                             </button>
