@@ -1315,39 +1315,39 @@ const playDoorSequence = async () => {
             </div>
 
             {/* Letter Content Area (預留給您日後填寫內容) */}
-            <div className="min-h-[220px] sm:min-h-[280px] font-mono leading-relaxed text-xs sm:text-sm space-y-3.5">
+            <div className="min-h-[220px] sm:min-h-[280px] font-mono leading-relaxed text-xs sm:text-sm space-y-3.5 px-4">
             <p>
-              我是一座座落於 <strong className="font-bold">綠嶺小徑</strong>（<strong className="font-bold italic">Green Summit Way</strong>）的古老建築，因為依山而建所以得名「山脊」。
+            我是一座座落於 <strong className="font-bold">綠嶺小徑</strong>（<strong className="font-bold italic">Green Summit Way</strong>）的古老建築，因為依山而建所以得名「山脊」。
             </p>
-
+            
             <p>
-              我的由來與歷史早已湮滅在歲月中，完全無從追溯。
+            我的由來與歷史早已湮滅在歲月中，完全無從追溯。
             </p>
-
-            <p className="pl-4 sm:pl-6 opacity-90">
-              在這漫長的時間長河裡，默默吞噬了無數不為人知的祕密。我或許也曾以不同的姿態，存在於其他經典的解謎遊戲中，扮演著那令人屏息的神祕場景。
+          
+            <p className="opacity-90">
+            在這漫長的時間長河裡，默默吞噬了無數不為人知的祕密。我或許也曾以不同的姿態，存在於其他經典的解謎遊戲中，扮演著那令人屏息的神祕場景。
             </p>
-
+            
             <p>
-             正因如此，留下了一封不屬於這個世界的信。
+            正因如此，留下了一封不屬於這個世界的信。
             </p>
-
-            <p className="pl-4 sm:pl-6 opacity-90">
-              作為一座建築，我無法親手打開它、也無法跨越維度去觸碰它，但或許來到這裡的你能做到。
+            
+            <p className="opacity-90">
+            作為一座建築，我無法親手打開它、也無法跨越維度去觸碰它，但或許來到這裡的你能做到。
             </p>
-
+            
             <p className="pt-1">
-              隱藏在 <code className={`font-bold px-1.5 py-0.5 border mx-0.5 inline-block ${isDark ? 'border-white text-white' : 'border-black text-black'}`}>HELP_67</code> 裡的祕密……
+            隱藏在 <code className={`font-bold px-1.5 py-0.5 border mx-0.5 inline-block ${isDark ? 'border-white text-white' : 'border-black text-black'}`}>HELP_67</code> 裡的祕密……
             </p>
-  
-            <p className="pt-1 pl-4 sm:pl-6 opacity-90">
-              喔對了，順帶一提——從大門進入的你會直接到達 <strong className="font-bold">大廳（Lobby）</strong>，<span className={`inline-block font-bold ${isDark ? 'text-[#7dd3fc]' : 'text-[#1d4ed8]'}`}>5</span> 正在這裡，但是剛剛其實不只有她....
+            
+            <p className="pt-1 opacity-90">
+            喔對了，順帶一提——從大門進入的你會直接到達 <strong className="font-bold">大廳（Lobby）</strong>，<span className={`inline-block font-bold ${isDark ? 'text-[#7dd3fc]' : 'text-[#1d4ed8]'}`}>5</span> 正在這裡，但是剛剛其實不只有她....
             </p>
-
+            
             <p className="pt-2 italic opacity-80">
-              （不知道你有沒有發現，這些文章的格式是有跡可循的~ 它們分別是 <span className="font-bold">章節_地址的前兩個字母_角色編號</span>）
+            （不知道你有沒有發現，這些文章的格式是有跡可循的~ 它們分別是 <span className="font-bold">章節_地址的前兩個字母_角色編號</span>）
             </p>
-          </div>
+            </div>
 
             {/* Bottom Letter Footer / Divider */}
             <div className="readme-footer readme-footer-hidden pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
