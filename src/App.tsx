@@ -1317,7 +1317,7 @@ const playDoorSequence = async () => {
             {/* Letter Content Area (預留給您日後填寫內容) */}
             <div className="min-h-[220px] sm:min-h-[280px] font-mono leading-relaxed text-xs sm:text-sm space-y-3.5">
               <p>
-               我是一座座落於 <strong className="font-bold">綠嶺小徑</strong>（<span className="italic">Green Summit Way</span>）的古老建築，因為依山而建所以得名「山脊」。
+               我是一座座落於 <strong className="font-bold">綠嶺小徑</strong>（<strong className="font-bold italic">Green Summit Way</strong>）的古老建築，因為依山而建所以得名「山脊」。
              </p>
 
                <p>
@@ -1337,7 +1337,7 @@ const playDoorSequence = async () => {
           </p>
 
       <p className="pt-1">
-       隱藏在 <span className={`inline-block font-bold ${isDark ? 'text-[#fef08a]' : 'text-[#854d0e] bg-[#fef9c3] px-1 border border-[#facc15]/60'}`}>HELP_67</span> 裡的祕密……
+       隱藏在 <code className={`font-bold px-1.5 py-0.5 border mx-0.5 inline-block ${isDark ? 'border-white text-white' : 'border-black text-black'}`}>HELP_67</code> 裡的祕密……
       </p>
 
         <p className="pt-1 pl-4 sm:pl-6 opacity-90">
