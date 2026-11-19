@@ -538,6 +538,17 @@ const playDoorSequence = async () => {
         typewriterTimersRef.current.push(setTimeout(() => {
           if (cancelled || finished) return;
           span.style.visibility = 'visible';
+          const highlight = span.closest<HTMLElement>('.readme-yellow-highlight');
+
+if (highlight) {
+  const chars = Array.from(
+    highlight.querySelectorAll<HTMLElement>('[data-readme-character="true"]')
+  );
+
+  if (chars.every((item) => item.style.visibility === 'visible')) {
+    highlight.classList.add('readme-yellow-highlight-visible');
+  }
+}
           const char = span.textContent || '';
           if (char.trim()) playTypewriterKey();
           if (frame) revealFrameIfReady(frame);
@@ -928,6 +939,15 @@ const playDoorSequence = async () => {
         }
         .readme-paper { border-color: transparent !important; }
         .readme-letter-content { visibility: hidden; }
+        .readme-yellow-highlight {
+  background-color: transparent;
+  border-color: transparent;
+}
+
+.readme-yellow-highlight.readme-yellow-highlight-visible {
+  background-color: #fef9c3;
+  border-color: rgba(250, 204, 21, 0.6);
+}
         .readme-page.readme-typing-active { pointer-events: none !important; }
         .readme-footer-hidden { visibility: hidden; }
         .readme-command-frame { border-color: transparent !important; outline: none !important; position: relative; }
@@ -1130,7 +1150,7 @@ const playDoorSequence = async () => {
               </p>
 
               <p>
-                如果出現 <span className={`font-bold inline-block ${isDark ? 'text-[#fef08a]' : 'text-[#854d0e] bg-[#fef9c3] px-1 border border-[#facc15]/60'}`}>黃色</span> 的字體時，點下去後會有有趣的事情發生喔 （*＾-＾*）
+                如果出現 <span className={`font-bold inline-block px-1 border readme-yellow-highlight ${isDark ? 'text-[#fef08a]' : 'text-[#854d0e]'}`}>黃色</span> 的字體時，點下去後會有有趣的事情發生喔 （*＾-＾*）
               </p>
 
               <p className="pt-1">
