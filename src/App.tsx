@@ -587,7 +587,7 @@ if (frame) revealFrameIfReady(frame);
       typewriterTimersRef.current.forEach(clearTimeout);
       typewriterTimersRef.current = [];
     };
-  }, [currentView]);
+  }, [currentView]);)
 
   // 當輸入欄完全浮現後自動聚焦
   useEffect(() => {
@@ -998,7 +998,7 @@ if (frame) revealFrameIfReady(frame);
               ? 'border-white hover:bg-white hover:text-black bg-black text-white'
               : 'border-black hover:bg-black hover:text-white bg-white text-black'
           }`}
-          title="切換黑白模式 (快捷鍵: Ctrl+T)"
+          title="切換黑白模式 (快捷鍵: Ctrl+T)")
         >
           {isDark ? '[ SWITCH TO WHITE ]' : '[ SWITCH TO BLACK ]'}
         </button>
