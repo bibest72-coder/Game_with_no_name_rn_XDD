@@ -316,7 +316,7 @@ const playDoorOpen = () => {
     `${import.meta.env.BASE_URL}assets/audio/door-creak.wav`
   );
 
-  sound.volume = 0.7;
+  sound.volume = 0.3;
   void sound.play().catch((error) => {
     console.error('[音效] 木門開啟聲播放失敗：', error);
   });
