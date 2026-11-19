@@ -981,7 +981,7 @@ const playDoorSequence = async () => {
             >
               <h1 className="text-xl sm:text-3xl font-mono tracking-widest leading-relaxed whitespace-pre-line theme-transition">
                 {displayedText}
-                {introPhase === 'typing' && (
+                {false && introPhase === 'typing' && (
                   <span
                     className={`inline-block w-2.5 h-5 sm:w-3.5 sm:h-7 ml-1.5 align-middle pixel-cursor ${
                       isDark ? 'bg-white' : 'bg-black'
