@@ -550,34 +550,18 @@ if (highlight) {
     highlight.querySelectorAll<HTMLElement>('[data-readme-character="true"]')
   );
 
-  if (chars.every((item) => item.style.visibility === 'visible')) {
-    highlight.classList.add('readme-yellow-highlight-visible');
-  }
-}
-const char = span.textContent || '';
-if (char.trim()) playTypewriterKey();
-         
- 
-const highlight = span.closest<HTMLElement>('.readme-yellow-highlight');
-
-if (highlight) {
-  const chars = Array.from(
-    highlight.querySelectorAll<HTMLElement>('[data-readme-character="true"]')
-  );
-
-  if (chars.every((item) => item.style.visibility === 'visible')) {
+  if (
+    chars.length > 0 &&
+    chars.every((item) => item.style.visibility === 'visible')
+  ) {
     highlight.classList.add('readme-yellow-highlight-visible');
   }
 }
 
 const char = span.textContent || '';
 if (char.trim()) playTypewriterKey();
-          if (frame) revealFrameIfReady(frame);
-        }, delay));
-        elapsed += span.textContent === ' ' || span.textContent === '\n' ? 18 : 38;
-      });
-      typewriterTimersRef.current.push(setTimeout(finish, elapsed + 20));
-    }, 2400);
+
+if (frame) revealFrameIfReady(frame);
     typewriterTimersRef.current.push(beginTimer);
 
     const onFastForward = (event: KeyboardEvent) => {
