@@ -532,36 +532,52 @@ const playDoorSequence = async () => {
 
       let elapsed = 0;
       let lastParagraph: Element | null = null;
+
       characters.forEach((span) => {
         const paragraph = span.closest('p');
-        if (lastParagraph && paragraph && paragraph !== lastParagraph) elapsed += 420;
+
+        if (lastParagraph && paragraph && paragraph !== lastParagraph) {
+          elapsed += 420;
+        }
+
         lastParagraph = paragraph || lastParagraph;
+
         const frame = span.closest<HTMLElement>('.readme-command-frame');
         const delay = elapsed;
+
         typewriterTimersRef.current.push(setTimeout(() => {
           if (cancelled || finished) return;
+
           span.style.visibility = 'visible';
-          
 
-const highlight = span.closest<HTMLElement>('.readme-yellow-highlight');
+          const highlight = span.closest<HTMLElement>('.readme-yellow-highlight');
 
-if (highlight) {
-  const chars = Array.from(
-    highlight.querySelectorAll<HTMLElement>('[data-readme-character="true"]')
-  );
+          if (highlight) {
+            const chars = Array.from(
+              highlight.querySelectorAll<HTMLElement>(
+                '[data-readme-character="true"]'
+              )
+            );
 
-  if (
-    chars.length > 0 &&
-    chars.every((item) => item.style.visibility === 'visible')
-  ) {
-    highlight.classList.add('readme-yellow-highlight-visible');
-  }
-}
+            if (
+              chars.length > 0 &&
+              chars.every((item) => item.style.visibility === 'visible')
+            ) {
+              highlight.classList.add('readme-yellow-highlight-visible');
+            }
+          }
 
-const char = span.textContent || '';
-if (char.trim()) playTypewriterKey();
+          const char = span.textContent || '';
+          if (char.trim()) playTypewriterKey();
 
-if (frame) revealFrameIfReady(frame);
+          if (frame) revealFrameIfReady(frame);
+        }, delay));
+
+        elapsed += span.textContent === ' ' || span.textContent === '\n' ? 18 : 38;
+      });
+
+      typewriterTimersRef.current.push(setTimeout(finish, elapsed + 20));
+    }, 2400);
     typewriterTimersRef.current.push(beginTimer);
 
     const onFastForward = (event: KeyboardEvent) => {
