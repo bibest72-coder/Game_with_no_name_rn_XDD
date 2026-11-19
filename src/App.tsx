@@ -508,6 +508,9 @@ const playDoorSequence = async () => {
         if (finished || cancelled) return;
         finished = true;
         characters.forEach((span) => { span.style.visibility = 'visible'; });
+        content.querySelectorAll('.readme-yellow-highlight').forEach((item) => {
+  item.classList.add('readme-yellow-highlight-visible');
+});
         commandFrames.forEach((frame) => {
           frame.classList.remove('readme-command-disabled');
           frame.classList.add('readme-frame-draw');
@@ -538,7 +541,9 @@ const playDoorSequence = async () => {
         typewriterTimersRef.current.push(setTimeout(() => {
           if (cancelled || finished) return;
           span.style.visibility = 'visible';
-          const highlight = span.closest<HTMLElement>('.readme-yellow-highlight');
+          
+
+const highlight = span.closest<HTMLElement>('.readme-yellow-highlight');
 
 if (highlight) {
   const chars = Array.from(
@@ -549,8 +554,24 @@ if (highlight) {
     highlight.classList.add('readme-yellow-highlight-visible');
   }
 }
-          const char = span.textContent || '';
-          if (char.trim()) playTypewriterKey();
+const char = span.textContent || '';
+if (char.trim()) playTypewriterKey();
+         
+ 
+const highlight = span.closest<HTMLElement>('.readme-yellow-highlight');
+
+if (highlight) {
+  const chars = Array.from(
+    highlight.querySelectorAll<HTMLElement>('[data-readme-character="true"]')
+  );
+
+  if (chars.every((item) => item.style.visibility === 'visible')) {
+    highlight.classList.add('readme-yellow-highlight-visible');
+  }
+}
+
+const char = span.textContent || '';
+if (char.trim()) playTypewriterKey();
           if (frame) revealFrameIfReady(frame);
         }, delay));
         elapsed += span.textContent === ' ' || span.textContent === '\n' ? 18 : 38;
@@ -939,6 +960,15 @@ if (highlight) {
         }
         .readme-paper { border-color: transparent !important; }
         .readme-letter-content { visibility: hidden; }
+        .readme-yellow-highlight {
+  background-color: transparent;
+  border-color: transparent;
+}
+
+.readme-yellow-highlight.readme-yellow-highlight-visible {
+  background-color: #fef9c3;
+  border-color: rgba(250, 204, 21, 0.6);
+}
         .readme-yellow-highlight {
   background-color: transparent;
   border-color: transparent;
