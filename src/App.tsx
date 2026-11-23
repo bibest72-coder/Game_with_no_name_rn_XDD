@@ -164,6 +164,50 @@ export default function App() {
     }
   });
 
+  // 1 號碼的代號/名稱 (預設為 '1'，可透過 1 或 name 指令更名)
+   const [name1, setName1] = useState<string>(() => {
+    try {
+      return localStorage.getItem('cli_name_1') || '1';
+    } catch {
+      return '1';
+    }
+  });
+  
+  // 2 號碼的代號/名稱 (預設為 '2'，可透過 2 或 name 指令更名)
+   const [name2, setName2] = useState<string>(() => {
+    try {
+      return localStorage.getItem('cli_name_2') || '2';
+    } catch {
+      return '2';
+    }
+  });
+  // 3 號碼的代號/名稱 (預設為 '3'，可透過 3 或 name 指令更名)
+   const [name3, setName3] = useState<string>(() => {
+    try {
+      return localStorage.getItem('cli_name_3') || '3';
+    } catch {
+      return '3';
+    }
+  });
+  
+  // 4 號碼的代號/名稱 (預設為 '4'，可透過 4 或 name 指令更名)
+   const [name4, setName4] = useState<string>(() => {
+    try {
+      return localStorage.getItem('cli_name_4') || '4';
+    } catch {
+      return '4';
+    }
+  });
+  
+  // 5 號碼的代號/名稱 (預設為 '5'，可透過 5 或 name 指令更名)
+    const [name5, setName5] = useState<string>(() => {
+    try {
+      return localStorage.getItem('cli_name_5') || '5';
+    } catch {
+      return '5';
+    }
+  });
+  
   // 6 號碼的代號/名稱 (預設為 '6'，可透過 6 或 name 指令更名)
   const [name6, setName6] = useState<string>(() => {
     try {
