@@ -1504,7 +1504,7 @@ const playDoorSequence = async () => {
             </p>
             
             <p className="pt-1 opacity-90">
-            喔對了，順帶一提——從大門進入的你會直接到達 <strong className="font-bold">大廳（Lobby）</strong>，<span className={`inline-block font-bold ${isDark ? 'text-[#7dd3fc]' : 'text-[#1d4ed8]'}`}>5</span> 正在這裡，但是剛剛其實不只有她....
+            喔對了，順帶一提——從大門進入的你會直接到達 <strong className="font-bold">大廳（Lobby）</strong>，<span className={`inline-block font-bold ${isDark ? 'text-[#7dd3fc]' : 'text-[#1d4ed8]'}`}>{name5}</span> 正在這裡，但是剛剛其實不只有她....
             </p>
             
             <p className="pt-2 italic opacity-80">
