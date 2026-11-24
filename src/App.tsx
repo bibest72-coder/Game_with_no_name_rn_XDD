@@ -837,6 +837,16 @@ const playDoorSequence = async () => {
       setPreviousView(currentView === 'list' ? 'list' : 'terminal');
       setCurrentView('doc_01_lo_25');
       setHintMessage(null);
+     } else if (cmd === '01_ev_3') {
+      // 劇情文件指令：導向 01_LO_25 劇情頁面
+      setPreviousView(currentView === 'list' ? 'list' : 'terminal');
+      setCurrentView('doc_01_ev_3');
+      setHintMessage(null);
+     } else if (cmd === '01_lu_4') {
+      // 劇情文件指令：導向 01_LO_25 劇情頁面
+      setPreviousView(currentView === 'list' ? 'list' : 'terminal');
+      setCurrentView('doc_01_lu_4');
+      setHintMessage(null);
     } else if (cmd === 'help_67') {
       // 劇情文件指令：導向 HELP_ˊ˙ 劇情頁面
       setPreviousView(currentView === 'list' ? 'list' : 'terminal');
