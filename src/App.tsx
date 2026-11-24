@@ -236,32 +236,6 @@ export default function App() {
         .map(item => item.cmd.match(/^(\d+)_/)?.[1] || ''),
     ])).filter(Boolean);
 
-  // 檢查名稱是否正被「其他」角色或資料夾使用
-  const isNameUsed = (candidate: string, exceptId: string) => {
-    const cleaned = candidate.trim().toLowerCase();
-
-    const activeNames = [
-      { id: 'user', name: userName },
-      { id: '1', name: name1 },
-      { id: '2', name: name2 },
-      { id: '3', name: name3 },
-      { id: '4', name: name4 },
-      { id: '5', name: name5 },
-      { id: '6', name: name6 },
-      { id: '7', name: name7 },
-      ...getFolderNameKeys().map(key => ({
-        id: `folder:${key}`,
-        name: folderCustomNames[key] || key,
-      })),
-    ];
-
-    return activeNames.some(
-      item =>
-        item.id !== exceptId &&
-        item.name.trim().toLowerCase() === cleaned
-    );
-  };
-
   // Entrance typewriter lifecycle: typing -> hold -> fade_out -> blank -> completed
   const [introPhase, setIntroPhase] = useState<IntroPhase>('typing');
   const [displayedText, setDisplayedText] = useState('');
