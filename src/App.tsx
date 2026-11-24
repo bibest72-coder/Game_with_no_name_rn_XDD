@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 type ThemeMode = 'black' | 'white';
-type ViewMode = 'terminal' | 'letter' | 'easter_egg' | 'doc_01_gr_1' | 'doc_01_lo_25' | 'doc_help_67' | 'letter_ridge_lodge' | 'letter_shiminaseo' | 'list';
+type ViewMode = 'terminal' | 'letter' | 'easter_egg' | 'doc_01_gr_1' | 'doc_01_lo_25' | 'doc_01_ev_3' | 'doc_01_lu_4' | 'doc_help_67' | 'letter_ridge_lodge' | 'letter_shiminaseo' | 'letter_promise_date' | 'list';
 type IntroPhase = 'typing' | 'hold' | 'fade_out' | 'blank' | 'completed';
 
 interface LetterCatalogItem {
