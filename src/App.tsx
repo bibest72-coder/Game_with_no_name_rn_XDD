@@ -1456,46 +1456,128 @@ const playDoorSequence = async () => {
 
       {/* VIEW: 01_LO_25 Story Document View */}
             {currentView === 'doc_01_lo_25' && (
-              <div
-                className="readme-page w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="w-full flex justify-start mb-4">
-                  <button
-                    type="button"
-                    onClick={handleBack}
-                    className={`px-3 py-1 text-xs sm:text-sm border-2 cursor-pointer font-bold tracking-wider uppercase transition-transform active:translate-y-0.5 ${
-                      isDark
-                        ? 'border-white hover:bg-white hover:text-black bg-black text-white'
-                        : 'border-black hover:bg-black hover:text-white bg-white text-black'
-                    }`}
-                    title="返回 (Esc)"
-                  >
-                    [ ◄ 返回 ]
-                  </button>
-                </div>
+              <div 
+          className="readme-page w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Minimalist Return Button */}
+          <div className="w-full flex justify-start mb-4">
+            <button
+              type="button"
+              onClick={() => setCurrentView('terminal')}
+              className={`px-3 py-1 text-xs sm:text-sm border-2 cursor-pointer font-bold tracking-wider uppercase transition-transform active:translate-y-0.5 ${
+                isDark
+                  ? 'border-white hover:bg-white hover:text-black bg-black text-white'
+                  : 'border-black hover:bg-black hover:text-white bg-white text-black'
+              }`}
+              title="返回 (Esc)"
+            >
+              [ ◄ 返回 ]
+            </button>
+          </div>
+
+          {/* Letter Envelope Box (與 README 相同外觀的信件框) */}
+          <div
+            className={`w-full border-2 p-6 sm:p-10 relative theme-transition ${
+              isDark ? 'border-white bg-black' : 'border-black bg-white'
+            }`}
+          >
+            {/* Top Postage / Stamp Accent */}
+            <div className="flex items-center justify-between border-b pb-4 mb-6">
+              <span className="text-xl sm:text-2xl font-bold tracking-wider">01_LO_25</span>
+            </div>
+
+            {/* Letter Content Area */}
+                        <div className="min-h-[220px] sm:min-h-[280px] font-mono leading-relaxed text-xs sm:text-sm space-y-3.5">
+              <p className="font-bold">
+                <span className={isDark ? 'text-[#7dd3fc]' : 'text-[#1d4ed8]'}>
+                  {name2}
+                </span>
+                ：「這裡是哪裡？為什麼房間裡會有那些東西……你到底是誰？！」
+              </p>
             
-                <div
-                  className={`w-full border-2 p-6 sm:p-10 relative theme-transition ${
-                    isDark ? 'border-white bg-black' : 'border-black bg-white'
-                  }`}
-                >
-                  <div className="flex items-center justify-between border-b pb-4 mb-6">
-                    <span className="text-xl sm:text-2xl font-bold tracking-wider">
-                      01_LO_25
-                    </span>
-                  </div>
+              <p className="pl-4 sm:pl-6 opacity-90">
+                <strong className="font-bold">Ash</strong> 臉色慘白，聲音因為極度的恐懼與憤怒而微微顫抖。
+              </p>
             
-                  <div className="min-h-[220px] sm:min-h-[280px] font-mono leading-relaxed text-xs sm:text-sm space-y-3.5">
-                    {/* 內容將於之後填入 */}
-                  </div>
+              <p className="pt-1 font-bold">
+                <span className={isDark ? 'text-[#7dd3fc]' : 'text-[#1d4ed8]'}>
+                  {name5}
+                </span>
+                ：「親愛的<strong className="font-bold">小艾</strong>，請妳先冷靜下來，不要激動。」
+              </p>
             
-                  <div className="readme-footer pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
-                    <span>END OF LETTER</span>
-                  </div>
-                </div>
-              </div>
-            )}
+              <p className="pl-4 sm:pl-6 opacity-90">
+                <strong className="font-bold">Iris</strong> 的眼神裡滿是心疼，她試圖安撫，語氣輕柔卻帶著一絲無奈。
+              </p>
+            
+              <p className="pt-1 font-bold">
+                <span className={isDark ? 'text-[#7dd3fc]' : 'text-[#1d4ed8]'}>
+                  {name5}
+                </span>
+                ：「我現在還沒辦法把一切都解釋清楚，但請妳相信，我真的沒有惡意……我了解妳的心情，也很同情妳過去所遭遇的那些……」
+              </p>
+            
+              <p className="pt-1 font-bold">
+                <span className={isDark ? 'text-[#7dd3fc]' : 'text-[#1d4ed8]'}>
+                  {name2}
+                </span>
+                ：「滾！我不需要妳的同情！少在這邊假惺惺……我現在就要離開這個鬼地方！」
+              </p>
+            
+              <p className="pt-1 pl-4 sm:pl-6 opacity-90">
+                面對 <strong className="font-bold">Ash</strong> 的崩潰與敵意，
+                <strong className="font-bold">Iris</strong> 什麼也沒有反駁。
+                她只是默默地走上前，張開雙臂，溫柔卻不容拒絕地將
+                <strong className="font-bold">Ash</strong> 緊緊擁入懷中。
+              </p>
+            
+              <p className="pt-1 font-bold">
+                <span className={isDark ? 'text-[#7dd3fc]' : 'text-[#1d4ed8]'}>
+                  {name5}
+                </span>
+                ：「對不起……但這一次，絕對不會了……外面現在雨下得很大，等雨停了再走，好嗎？」
+              </p>
+            
+              <p className="pt-1 pl-4 sm:pl-6 opacity-90">
+                這突如其來的懷抱和道歉讓 <strong className="font-bold">Ash</strong> 感到莫名其妙，
+                心中隨之湧上一股荒謬與被冒犯的怒火。
+              </p>
+            
+              <p className="pt-1 font-bold">
+                <span className={isDark ? 'text-[#7dd3fc]' : 'text-[#1d4ed8]'}>
+                  {name2}
+                </span>
+                ：「滾。」
+              </p>
+            
+              <p className="pt-1 pl-4 sm:pl-6 opacity-90">
+                她用力甩開了 <strong className="font-bold">Iris</strong>，轉過身，踩著憤怒又急促的步伐直直走回三樓。
+              </p>
+            
+              <p className="pt-2 text-center tracking-widest">
+                叩、叩、叩 ——
+              </p>
+            
+              <p className="pt-1 font-bold">
+                <span className={isDark ? 'text-[#7dd3fc]' : 'text-[#1d4ed8]'}>
+                  {name5}
+                </span>
+                ：「人終於到齊了……」
+              </p>
+            
+              <p className="pl-4 sm:pl-6 opacity-90">
+                <strong className="font-bold">Iris</strong> 走向大門，緩緩將其推開一條縫。
+              </p>
+            </div>  
+            {/* Bottom Letter Footer / Divider */}
+            <div className="readme-footer readme-footer-hidden pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
+              <span>END OF LETTER</span>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* VIEW 5: Interactive Object Letter View (Ridge Lodge / 山脊旅店) */}
       {currentView === 'letter_ridge_lodge' && (
         <div 
