@@ -874,72 +874,147 @@ const playDoorSequence = async () => {
                    currentDisplay.toLowerCase() === cleanSpecified.toLowerCase();
           });
 
-          if (!matchedKey) {
+                  if (!matchedKey) {
             setHintMessage(`找不到指定的資料夾 "${cleanSpecified}"。`);
           } else {
-            const oldDisplayName = folderCustomNames[matchedKey] || matchedKey;
-            const nextNames = {
-              ...folderCustomNames,
-              [matchedKey]: cleanNewName,
-            };
-            setFolderCustomNames(nextNames);
-            try {
-              localStorage.setItem('cli_folder_names', JSON.stringify(nextNames));
-            } catch {}
-            setHintMessage(`資料夾名稱已由 "${oldDisplayName}" 修改為 "${cleanNewName}"`);
+            const folderId = `folder:${matchedKey}`;
+            const oldDisplayName =
+              folderCustomNames[matchedKey] || matchedKey;
+
+            if (isNameUsed(cleanNewName, folderId)) {
+              setHintMessage(
+                `名稱 "${cleanNewName}" 正被其他角色或資料夾使用，不能重複。`
+              );
+            } else {
+              const nextNames = {
+                ...folderCustomNames,
+                [matchedKey]: cleanNewName,
+              };
+
+              setFolderCustomNames(nextNames);
+
+              try {
+                localStorage.setItem(
+                  'cli_folder_names',
+                  JSON.stringify(nextNames)
+                );
+              } catch {}
+
+              setHintMessage(
+                `資料夾名稱已由 "${oldDisplayName}" 修改為 "${cleanNewName}"`
+              );
+            }
           }
         }
       }
-    } else if (cmd === 'name') {
-      // 通用名字更名指令: name <原本的名字> <要換的名字>
+        } else if (cmd === 'name') {
+      // 通用名字更名指令: name <目前名字> <新名字>
       const rest = command.slice(cmd.length).trim();
       const parts = rest.split(/\s+/);
 
       if (parts.length < 2 || !parts[0] || !parts[1]) {
-        setHintMessage(`格式錯誤。格式為: name <原本的名字> <要換的名字>`);
+        setHintMessage(
+          '格式錯誤。格式為: name <目前名字> <新名字>'
+        );
       } else {
-        const cleanSpecified = parts[0].replace(/^["']|["']$/g, '').trim();
-        const cleanNewName = parts.slice(1).join(' ').trim().replace(/^["']|["']$/g, '');
+        const cleanSpecified = parts[0]
+          .replace(/^["']|["']$/g, '')
+          .trim();
+
+        const cleanNewName = parts
+          .slice(1)
+          .join(' ')
+          .trim()
+          .replace(/^["']|["']$/g, '');
+
+        const targets = [
+          {
+            id: 'user',
+            name: userName,
+            setName: setUserName,
+            storageKey: 'cli_user_name_v2',
+          },
+          {
+            id: '1',
+            name: name1,
+            setName: setName1,
+            storageKey: 'cli_name_1',
+          },
+          {
+            id: '2',
+            name: name2,
+            setName: setName2,
+            storageKey: 'cli_name_2',
+          },
+          {
+            id: '3',
+            name: name3,
+            setName: setName3,
+            storageKey: 'cli_name_3',
+          },
+          {
+            id: '4',
+            name: name4,
+            setName: setName4,
+            storageKey: 'cli_name_4',
+          },
+          {
+            id: '5',
+            name: name5,
+            setName: setName5,
+            storageKey: 'cli_name_5',
+          },
+          {
+            id: '6',
+            name: name6,
+            setName: setName6,
+            storageKey: 'cli_name_6',
+          },
+          {
+            id: '7',
+            name: name7,
+            setName: setName7,
+            storageKey: 'cli_name_7',
+          },
+        ];
+
+        const target = targets.find(
+          item =>
+            item.name.toLowerCase() ===
+            cleanSpecified.toLowerCase()
+        );
 
         if (!cleanNewName) {
-          setHintMessage(`格式錯誤。格式為: name <原本的名字> <要換的名字>`);
-        } else if (
-          cleanSpecified.toLowerCase() !== userName.toLowerCase() &&
-          cleanSpecified.toLowerCase() !== name6.toLowerCase() &&
-          cleanSpecified.toLowerCase() !== name7.toLowerCase()
-        ) {
-          setHintMessage(`指定的名字 "${cleanSpecified}" 不相符。`);
+          setHintMessage(
+            '格式錯誤。格式為: name <目前名字> <新名字>'
+          );
+        } else if (!target) {
+          setHintMessage(
+            `找不到目前名稱為 "${cleanSpecified}" 的角色。`
+          );
         } else if (/\s/.test(cleanNewName)) {
-          setHintMessage(`名字不能包含空格，建議使用底線 (例如: so_sad)`);
-        } else if (usedNames.some(n => n.toLowerCase() === cleanNewName.toLowerCase())) {
-          // 防止撞名字：先取的之後不能取了
-          setHintMessage(`名稱 "${cleanNewName}" 已經被使用過，不能重複取名！請換一個新名稱。`);
+          setHintMessage(
+            '名字不能包含空格，建議使用底線。'
+          );
+        } else if (isNameUsed(cleanNewName, target.id)) {
+          setHintMessage(
+            `名稱 "${cleanNewName}" 正被其他角色或資料夾使用，不能重複。`
+          );
         } else {
-          const isTarget6 = cleanSpecified.toLowerCase() === name6.toLowerCase();
-          const isTarget7 = cleanSpecified.toLowerCase() === name7.toLowerCase();
-          const oldName = isTarget6 ? name6 : isTarget7 ? name7 : userName;
-          if (isTarget6) {
-            setName6(cleanNewName);
-            try {
-              localStorage.setItem('cli_name_6', cleanNewName);
-            } catch {}
-          } else if (isTarget7) {
-            setName7(cleanNewName);
-            try {
-              localStorage.setItem('cli_name_7', cleanNewName);
-            } catch {}
-          } else {
-            setUserName(cleanNewName);
-            try {
-              localStorage.setItem('cli_user_name_v2', cleanNewName);
-            } catch {}
-          }
-          const nextUsed = [...usedNames, cleanNewName];
-          setUsedNames(nextUsed);
+          const oldName = target.name;
+
+          target.setName(cleanNewName);
+
           try {
-            localStorage.setItem('cli_used_names', JSON.stringify(nextUsed));
+            localStorage.setItem(
+              target.storageKey,
+              cleanNewName
+            );
           } catch {}
-          setHintMessage(`名稱已由 "${oldName}" 修改為 "${cleanNewName}"！`);
+
+          setHintMessage(
+            `名稱已由 "${oldName}" 修改為 "${cleanNewName}"！`
+          );
         }
       }
     } else {
