@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 
 type ThemeMode = 'black' | 'white';
-type ViewMode = 'terminal' | 'letter' | 'easter_egg' | 'doc_01_gr_1' | 'doc_help_67' | 'letter_ridge_lodge' | 'letter_shiminaseo' | 'list';
+type ViewMode = 'terminal' | 'letter' | 'easter_egg' | 'doc_01_gr_1' | 'doc_01_lo_25' | 'doc_help_67' | 'letter_ridge_lodge' | 'letter_shiminaseo' | 'list';
 type IntroPhase = 'typing' | 'hold' | 'fade_out' | 'blank' | 'completed';
 
 interface LetterCatalogItem {
@@ -30,10 +30,16 @@ const LETTER_CATALOG: LetterCatalogItem[] = [
     title: '01_GR_1 (暴雨中的綠嶺小徑)',
     view: 'doc_01_gr_1',
   },
+    {
+    id: '01_lo_25',
+    cmd: '01_LO_25',
+    title: '01_LO_25 (大廳的爭吵)',
+    view: 'doc_01_lo_25',
+  },
   {
     id: 'help_67',
     cmd: 'HELP_67',
-    title: 'HELP_67',
+    title: 'HELP_67 (哈哈哈)',
     view: 'doc_help_67',
   },
   {
@@ -136,6 +142,7 @@ export default function App() {
     if (currentView === 'letter') recordLetterUnlock('simple');
     else if (currentView === 'easter_egg') recordLetterUnlock('k33p_1t_s1mpl3');
     else if (currentView === 'doc_01_gr_1') recordLetterUnlock('01_gr_1');
+      else if (currentView === 'doc_01_lo_25') recordLetterUnlock('01_lo_25');
     else if (currentView === 'doc_help_67') recordLetterUnlock('help_67');
     else if (currentView === 'letter_ridge_lodge') recordLetterUnlock('inspect_ri');
     else if (currentView === 'letter_shiminaseo') recordLetterUnlock('inspect_sh');
@@ -785,13 +792,13 @@ const playDoorSequence = async () => {
 
         setHintMessage(`${cmd} 號碼名稱已由 "${currentName}" 修改為 "${newName}"！`);
       }
-    } else if (cmd === 'toggle' || cmd === 'invert' || cmd === 'theme') {
+    } else if (cmd === 'toggle' || cmd === 'theme') {
       toggleTheme();
       setHintMessage(null);
-    } else if (cmd === 'black' || cmd === 'dark') {
+    } else if (cmd === 'black') {
       toggleTheme('black');
       setHintMessage(null);
-    } else if (cmd === 'white' || cmd === 'light') {
+    } else if (cmd === 'white') {
       toggleTheme('white');
       setHintMessage(null);
     } else if (cmd === 'simple') {
@@ -802,12 +809,17 @@ const playDoorSequence = async () => {
       // 彩蛋指令：導向彩蛋信件頁面
       setCurrentView('easter_egg');
       setHintMessage(null);
-    } else if (cmd === '01_gr_1' || cmd === '01-gr-1') {
+    } else if (cmd === '01_gr_1') {
       // 劇情文件指令：導向 01_GR_1 劇情頁面
       setPreviousView(currentView === 'list' ? 'list' : 'terminal');
       setCurrentView('doc_01_gr_1');
       setHintMessage(null);
-    } else if (cmd === 'help_67' || cmd === 'help_67') {
+    } else if (cmd === '01_lo_25') {
+      // 劇情文件指令：導向 01_LO_25 劇情頁面
+      setPreviousView(currentView === 'list' ? 'list' : 'terminal');
+      setCurrentView('doc_01_lo_25');
+      setHintMessage(null);
+    } else if (cmd === 'help_67') {
       // 劇情文件指令：導向 HELP_ˊ˙ 劇情頁面
       setPreviousView(currentView === 'list' ? 'list' : 'terminal');
       setCurrentView('doc_help_67');
