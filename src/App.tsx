@@ -37,6 +37,18 @@ const LETTER_CATALOG: LetterCatalogItem[] = [
     view: 'doc_01_lo_25',
   },
   {
+    id: '01_ev_3',
+    cmd: '01_EV_3',
+    title: '01_EV_3 (體驗式室內設計師)',
+    view: 'doc_01_ev_3',
+  },
+   {
+    id: '01_lu_4',
+    cmd: '01_LU_4',
+    title: '01_LU_4 (一個樂天派)',
+    view: 'doc_01_lu_4',
+  },
+  {
     id: 'help_67',
     cmd: 'HELP_67',
     title: 'HELP_67 (哈哈哈)',
@@ -53,6 +65,12 @@ const LETTER_CATALOG: LetterCatalogItem[] = [
     cmd: 'inspect_sh',
     title: '尸米那誰喔 (Shiminaseo)',
     view: 'letter_shiminaseo',
+  },
+  {
+    id: 'inspect_pr',
+    cmd: 'inspect_pr',
+    title: '承諾的日期 (Promise Date)',
+    view: 'letter_promise_date',
   },
 ];
 
