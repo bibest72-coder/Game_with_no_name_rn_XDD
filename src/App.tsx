@@ -734,14 +734,12 @@ const playDoorSequence = async () => {
       const newName = parts.slice(2).join(' ').replace(/^["']|["']$/g, '').trim();
       const currentName = currentNames[cmd];
 
-      if (!specifiedName || !newName) {
+           if (!specifiedName || !newName) {
         setHintMessage(`格式錯誤。格式為: ${cmd} <目前名稱> <新名稱>`);
       } else if (specifiedName.toLowerCase() !== currentName.toLowerCase()) {
         setHintMessage(`目前 ${cmd} 號碼的名稱為 "${currentName}"。`);
       } else if (/\s/.test(newName)) {
         setHintMessage('名字不能包含空格，建議使用底線。');
-      } else if (isNameUsed(newName, cmd)) {
-        setHintMessage(`名稱 "${newName}" 正被其他角色或資料夾使用，不能重複。`);
       } else {
         if (cmd === '1') setName1(newName);
         if (cmd === '2') setName2(newName);
@@ -850,34 +848,27 @@ const playDoorSequence = async () => {
 
                   if (!matchedKey) {
             setHintMessage(`找不到指定的資料夾 "${cleanSpecified}"。`);
-          } else {
-            const folderId = `folder:${matchedKey}`;
+           } else {
             const oldDisplayName =
               folderCustomNames[matchedKey] || matchedKey;
 
-            if (isNameUsed(cleanNewName, folderId)) {
-              setHintMessage(
-                `名稱 "${cleanNewName}" 正被其他角色或資料夾使用，不能重複。`
+            const nextNames = {
+              ...folderCustomNames,
+              [matchedKey]: cleanNewName,
+            };
+
+            setFolderCustomNames(nextNames);
+
+            try {
+              localStorage.setItem(
+                'cli_folder_names',
+                JSON.stringify(nextNames)
               );
-            } else {
-              const nextNames = {
-                ...folderCustomNames,
-                [matchedKey]: cleanNewName,
-              };
+            } catch {}
 
-              setFolderCustomNames(nextNames);
-
-              try {
-                localStorage.setItem(
-                  'cli_folder_names',
-                  JSON.stringify(nextNames)
-                );
-              } catch {}
-
-              setHintMessage(
-                `資料夾名稱已由 "${oldDisplayName}" 修改為 "${cleanNewName}"`
-              );
-            }
+            setHintMessage(
+              `資料夾名稱已由 "${oldDisplayName}" 修改為 "${cleanNewName}"`
+            );
           }
         }
       }
