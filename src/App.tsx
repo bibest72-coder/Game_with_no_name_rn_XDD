@@ -160,7 +160,9 @@ export default function App() {
     if (currentView === 'letter') recordLetterUnlock('simple');
     else if (currentView === 'easter_egg') recordLetterUnlock('k33p_1t_s1mpl3');
     else if (currentView === 'doc_01_gr_1') recordLetterUnlock('01_gr_1');
-      else if (currentView === 'doc_01_lo_25') recordLetterUnlock('01_lo_25');
+    else if (currentView === 'doc_01_lo_25') recordLetterUnlock('01_lo_25');
+    else if (currentView === 'doc_01_ev_3') recordLetterUnlock('01_ev_3');
+    else if (currentView === 'doc_01_lu_4') recordLetterUnlock('01_lu_4');
     else if (currentView === 'doc_help_67') recordLetterUnlock('help_67');
     else if (currentView === 'letter_ridge_lodge') recordLetterUnlock('inspect_ri');
     else if (currentView === 'letter_shiminaseo') recordLetterUnlock('inspect_sh');
