@@ -1454,6 +1454,48 @@ const playDoorSequence = async () => {
         </div>
       )}
 
+      {/* VIEW: 01_LO_25 Story Document View */}
+            {currentView === 'doc_01_lo_25' && (
+              <div
+                className="readme-page w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="w-full flex justify-start mb-4">
+                  <button
+                    type="button"
+                    onClick={handleBack}
+                    className={`px-3 py-1 text-xs sm:text-sm border-2 cursor-pointer font-bold tracking-wider uppercase transition-transform active:translate-y-0.5 ${
+                      isDark
+                        ? 'border-white hover:bg-white hover:text-black bg-black text-white'
+                        : 'border-black hover:bg-black hover:text-white bg-white text-black'
+                    }`}
+                    title="返回 (Esc)"
+                  >
+                    [ ◄ 返回 ]
+                  </button>
+                </div>
+            
+                <div
+                  className={`w-full border-2 p-6 sm:p-10 relative theme-transition ${
+                    isDark ? 'border-white bg-black' : 'border-black bg-white'
+                  }`}
+                >
+                  <div className="flex items-center justify-between border-b pb-4 mb-6">
+                    <span className="text-xl sm:text-2xl font-bold tracking-wider">
+                      01_LO_25
+                    </span>
+                  </div>
+            
+                  <div className="min-h-[220px] sm:min-h-[280px] font-mono leading-relaxed text-xs sm:text-sm space-y-3.5">
+                    {/* 內容將於之後填入 */}
+                  </div>
+            
+                  <div className="readme-footer pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
+                    <span>END OF LETTER</span>
+                  </div>
+                </div>
+              </div>
+            )}
       {/* VIEW 5: Interactive Object Letter View (Ridge Lodge / 山脊旅店) */}
       {currentView === 'letter_ridge_lodge' && (
         <div 
