@@ -1652,7 +1652,7 @@ const playDoorSequence = async () => {
               </p>
             
               <p>
-                作為一名頂尖的「體驗式室內設計師」，<strong><em>Eve Florence</em></strong> 的創作向來不看藍圖，而是習慣親自入住；而這一次，她正是被請來為這棟老舊旅店進行全面整修。
+                作為一名頂尖的「體驗式室內設計師」，<strong><em>Eve</em></strong> 的創作向來不看藍圖，而是習慣親自入住；而這一次，她正是被請來為這棟老舊旅店進行全面整修。
               </p>
             
               <p>
@@ -1664,7 +1664,7 @@ const playDoorSequence = async () => {
               </p>
             
               <p>
-                身處 <strong>204 號房</strong>的 <strong><em>Eve Florence</em></strong> 痛得臉色發白。
+                身處 <strong>204 號房</strong>的 <strong><em>Eve</em></strong> 痛得臉色發白。
               </p>
             
               <p className="pt-1 font-bold">
