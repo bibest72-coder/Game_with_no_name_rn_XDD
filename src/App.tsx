@@ -226,17 +226,41 @@ export default function App() {
     }
   });
 
-  // 記錄所有曾經被取過的名字 (防止撞名：先取的之後不能再取)
-  const [usedNames, setUsedNames] = useState<string[]>(() => {
-    try {
-      const saved = localStorage.getItem('cli_used_names');
-      if (saved) {
-        const list = JSON.parse(saved);
-        if (Array.isArray(list) && list.length > 0) return list;
-      }
-    } catch {}
-    return ['User', '6', '7'];
-  });
+    // 取得所有可更名的資料夾 key
+  const getFolderNameKeys = () =>
+    Array.from(new Set([
+      'others',
+      'inspect',
+      ...LETTER_CATALOG
+        .filter(item => /^\d+_[A-Za-z]+_\d+$/.test(item.cmd))
+        .map(item => item.cmd.match(/^(\d+)_/)?.[1] || ''),
+    ])).filter(Boolean);
+
+  // 檢查名稱是否正被「其他」角色或資料夾使用
+  const isNameUsed = (candidate: string, exceptId: string) => {
+    const cleaned = candidate.trim().toLowerCase();
+
+    const activeNames = [
+      { id: 'user', name: userName },
+      { id: '1', name: name1 },
+      { id: '2', name: name2 },
+      { id: '3', name: name3 },
+      { id: '4', name: name4 },
+      { id: '5', name: name5 },
+      { id: '6', name: name6 },
+      { id: '7', name: name7 },
+      ...getFolderNameKeys().map(key => ({
+        id: `folder:${key}`,
+        name: folderCustomNames[key] || key,
+      })),
+    ];
+
+    return activeNames.some(
+      item =>
+        item.id !== exceptId &&
+        item.name.trim().toLowerCase() === cleaned
+    );
+  };
 
   // Entrance typewriter lifecycle: typing -> hold -> fade_out -> blank -> completed
   const [introPhase, setIntroPhase] = useState<IntroPhase>('typing');
@@ -720,7 +744,46 @@ const playDoorSequence = async () => {
     const args = lower.split(/\s+/);
     const cmd = args[0];
 
-    if (cmd === 'toggle' || cmd === 'invert' || cmd === 'theme') {
+       if (/^[1-7]$/.test(cmd)) {
+      const currentNames: Record<string, string> = {
+        '1': name1,
+        '2': name2,
+        '3': name3,
+        '4': name4,
+        '5': name5,
+        '6': name6,
+        '7': name7,
+      };
+
+      const parts = command.split(/\s+/);
+      const specifiedName = parts[1]?.replace(/^["']|["']$/g, '').trim();
+      const newName = parts.slice(2).join(' ').replace(/^["']|["']$/g, '').trim();
+      const currentName = currentNames[cmd];
+
+      if (!specifiedName || !newName) {
+        setHintMessage(`格式錯誤。格式為: ${cmd} <目前名稱> <新名稱>`);
+      } else if (specifiedName.toLowerCase() !== currentName.toLowerCase()) {
+        setHintMessage(`目前 ${cmd} 號碼的名稱為 "${currentName}"。`);
+      } else if (/\s/.test(newName)) {
+        setHintMessage('名字不能包含空格，建議使用底線。');
+      } else if (isNameUsed(newName, cmd)) {
+        setHintMessage(`名稱 "${newName}" 正被其他角色或資料夾使用，不能重複。`);
+      } else {
+        if (cmd === '1') setName1(newName);
+        if (cmd === '2') setName2(newName);
+        if (cmd === '3') setName3(newName);
+        if (cmd === '4') setName4(newName);
+        if (cmd === '5') setName5(newName);
+        if (cmd === '6') setName6(newName);
+        if (cmd === '7') setName7(newName);
+
+        try {
+          localStorage.setItem(`cli_name_${cmd}`, newName);
+        } catch {}
+
+        setHintMessage(`${cmd} 號碼名稱已由 "${currentName}" 修改為 "${newName}"！`);
+      }
+    } else if (cmd === 'toggle' || cmd === 'invert' || cmd === 'theme') {
       toggleTheme();
       setHintMessage(null);
     } else if (cmd === 'black' || cmd === 'dark') {
@@ -825,70 +888,6 @@ const playDoorSequence = async () => {
             } catch {}
             setHintMessage(`資料夾名稱已由 "${oldDisplayName}" 修改為 "${cleanNewName}"`);
           }
-        }
-      }
-    } else if (cmd === '6') {
-      // 專屬於 6 號碼的更名指令: 6 <原本的名字> <要換的名字>
-      const rest = command.slice(cmd.length).trim();
-      const parts = rest.split(/\s+/);
-
-      if (parts.length < 2 || !parts[0] || !parts[1]) {
-        setHintMessage(`格式錯誤。格式為: 6 <原本的名字> <要換的名字> (目前名稱: "${name6}")`);
-      } else {
-        const cleanSpecified = parts[0].replace(/^["']|["']$/g, '').trim();
-        const cleanNewName = parts.slice(1).join(' ').trim().replace(/^["']|["']$/g, '');
-
-        if (!cleanNewName) {
-          setHintMessage(`格式錯誤。格式為: 6 <原本的名字> <要換的名字>`);
-        } else if (cleanSpecified.toLowerCase() !== name6.toLowerCase()) {
-          setHintMessage(`指定的名字 "${cleanSpecified}" 不相符，目前 6 號碼的名稱為 "${name6}"。`);
-        } else if (/\s/.test(cleanNewName)) {
-          setHintMessage(`名字不能包含空格，建議使用底線 (例如: so_sad)`);
-        } else if (usedNames.some(n => n.toLowerCase() === cleanNewName.toLowerCase())) {
-          // 防止撞名字：先取的之後不能取了
-          setHintMessage(`名稱 "${cleanNewName}" 已經被使用過，不能重複取名！請換一個新名稱。`);
-        } else {
-          const oldName = name6;
-          setName6(cleanNewName);
-          const nextUsed = [...usedNames, cleanNewName];
-          setUsedNames(nextUsed);
-          try {
-            localStorage.setItem('cli_name_6', cleanNewName);
-            localStorage.setItem('cli_used_names', JSON.stringify(nextUsed));
-          } catch {}
-          setHintMessage(`6 號碼名稱已由 "${oldName}" 修改為 "${cleanNewName}"！`);
-        }
-      }
-    } else if (cmd === '7') {
-      // 專屬於 7 號碼的更名指令: 7 <原本的名字> <要換的名字>
-      const rest = command.slice(cmd.length).trim();
-      const parts = rest.split(/\s+/);
-
-      if (parts.length < 2 || !parts[0] || !parts[1]) {
-        setHintMessage(`格式錯誤。格式為: 7 <原本的名字> <要換的名字> (目前名稱: "${name7}")`);
-      } else {
-        const cleanSpecified = parts[0].replace(/^["']|["']$/g, '').trim();
-        const cleanNewName = parts.slice(1).join(' ').trim().replace(/^["']|["']$/g, '');
-
-        if (!cleanNewName) {
-          setHintMessage(`格式錯誤。格式為: 7 <原本的名字> <要換的名字>`);
-        } else if (cleanSpecified.toLowerCase() !== name7.toLowerCase()) {
-          setHintMessage(`指定的名字 "${cleanSpecified}" 不相符，目前 7 號碼的名稱為 "${name7}"。`);
-        } else if (/\s/.test(cleanNewName)) {
-          setHintMessage(`名字不能包含空格，建議使用底線 (例如: so_sad)`);
-        } else if (usedNames.some(n => n.toLowerCase() === cleanNewName.toLowerCase())) {
-          // 防止撞名字：先取的之後不能取了
-          setHintMessage(`名稱 "${cleanNewName}" 已經被使用過，不能重複取名！請換一個新名稱。`);
-        } else {
-          const oldName = name7;
-          setName7(cleanNewName);
-          const nextUsed = [...usedNames, cleanNewName];
-          setUsedNames(nextUsed);
-          try {
-            localStorage.setItem('cli_name_7', cleanNewName);
-            localStorage.setItem('cli_used_names', JSON.stringify(nextUsed));
-          } catch {}
-          setHintMessage(`7 號碼名稱已由 "${oldName}" 修改為 "${cleanNewName}"！`);
         }
       }
     } else if (cmd === 'name') {
