@@ -169,6 +169,7 @@ export default function App() {
   }, [currentView]);
 
   const handleBack = () => {
+    stopStoryAudio();
     if (previousView === 'list') {
       setCurrentView('list');
     } else if (currentView === 'letter_ridge_lodge' && previousView === 'doc_01_gr_1') {
@@ -303,7 +304,9 @@ const knockAudioRef = useRef<HTMLAudioElement | null>(null);
 const knockTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 const typewriterAudioContextRef = useRef<AudioContext | null>(null);
 const typewriterTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
-
+const activeStorySoundsRef = useRef<Set<HTMLAudioElement>>(new Set());
+const doorSequenceIdRef = useRef(0);
+const cancelKnocksRef = useRef<(() => void) | null>(null);
 // 以瀏覽器合成短促的按鍵聲，不需要額外音效檔
 const playTypewriterKey = () => {
   try {
@@ -358,7 +361,28 @@ const startRain = () => {
     });
   }
 };
+const stopStoryAudio = () => {
+  // 讓正在等待的音效流程失效，避免返回後接著播放其他音效
+  doorSequenceIdRef.current += 1;
 
+  cancelKnocksRef.current?.();
+  cancelKnocksRef.current = null;
+
+  knockTimersRef.current.forEach(clearTimeout);
+  knockTimersRef.current = [];
+
+  const rain = rainAudioRef.current;
+  if (rain) {
+    rain.pause();
+    rain.currentTime = 0;
+  }
+
+  activeStorySoundsRef.current.forEach((sound) => {
+    sound.pause();
+    sound.currentTime = 0;
+  });
+  activeStorySoundsRef.current.clear();
+};
 
   const playThreeKnocks = (): Promise<void> => {
     const originalKnock = knockAudioRef.current;
@@ -375,16 +399,24 @@ const startRain = () => {
       let finished = false;
       // 防止瀏覽器未觸發 ended 時，後續腳步與開門音效永遠不播放
       const fallbackTimer = setTimeout(finish, 12000);
-      function finish() {
-        if (finished) return;
-        finished = true;
-        clearTimeout(fallbackTimer);
-        resolve();
-      }
-
+     function finish() {
+          if (finished) return;
+          finished = true;
+          clearTimeout(fallbackTimer);
+          if (cancelKnocksRef.current === finish) {
+            cancelKnocksRef.current = null;
+          }
+          resolve();
+        }
+        cancelKnocksRef.current = finish;
       [0, 2000, 4000].forEach((delay, index) => {
         const timer = setTimeout(() => {
           const knock = originalKnock.cloneNode(true) as HTMLAudioElement;
+          activeStorySoundsRef.current.add(knock);
+            
+            const removeKnock = () => activeStorySoundsRef.current.delete(knock);
+            knock.addEventListener('ended', removeKnock, { once: true });
+            knock.addEventListener('error',co removeKnock, { once: true });
           knock.volume = originalKnock.volume;
           knock.currentTime = 0;
 
@@ -419,10 +451,12 @@ const playDoorOpen = () => {
 
 /** 播放拖沓腳步聲，等待音檔完整播放完畢 */
 const playFootsteps = (): Promise<void> => {
+
   return new Promise((resolve, reject) => {
     const sound = new Audio(
       `${import.meta.env.BASE_URL}assets/audio/footsteps.mp3`
     );
+    activeStorySoundsRef.current.add(sound);
 
     sound.volume = 0.55;
     let finished = false;
@@ -432,6 +466,7 @@ const playFootsteps = (): Promise<void> => {
       if (finished) return;
       finished = true;
       if (fallbackTimer) clearTimeout(fallbackTimer);
+      activeStorySoundsRef.current.delete(sound);
       resolve();
     };
 
@@ -440,6 +475,7 @@ const playFootsteps = (): Promise<void> => {
       if (finished) return;
       finished = true;
       if (fallbackTimer) clearTimeout(fallbackTimer);
+      activeStorySoundsRef.current.delete(sound);
       reject(new Error('腳步音效載入失敗，請確認 assets/audio/footsteps.mp3 路徑'));
     }, { once: true });
     sound.addEventListener('loadedmetadata', () => {
@@ -458,20 +494,21 @@ const playFootsteps = (): Promise<void> => {
 
 /** 開場音效順序：三下敲門 → 等 4 秒 → 腳步 → 等 1 秒 → 開門 */
 const playDoorSequence = async () => {
+  const sequenceId = ++doorSequenceIdRef.current;
+
   try {
-    // 播放三下敲門，並等待第三下完整結束
     await playThreeKnocks();
+    if (sequenceId !== doorSequenceIdRef.current) return;
 
-    // 最後一下敲門結束後，再等待 4 秒
     await new Promise<void>((resolve) => setTimeout(resolve, 4000));
+    if (sequenceId !== doorSequenceIdRef.current) return;
 
-    // 播放腳步聲，並等待音檔完整播放完畢
     await playFootsteps();
+    if (sequenceId !== doorSequenceIdRef.current) return;
 
-    // 腳步完整結束後再安靜 1 秒
     await new Promise<void>((resolve) => setTimeout(resolve, 1000));
+    if (sequenceId !== doorSequenceIdRef.current) return;
 
-    // 最後播放木門開啟聲
     playDoorOpen();
   } catch (error) {
     console.error('[音效] 故事音效播放失敗：', error);
@@ -536,12 +573,9 @@ const playDoorSequence = async () => {
     if (currentView === 'doc_01_gr_1') {
       startRain();
       void playDoorSequence();
-    } else {
-      const rain = rainAudioRef.current;
-      if (rain) {
-        rain.pause();
-        rain.currentTime = 0;
-      }
+   } else {
+  stopStoryAudio();
+}
       knockTimersRef.current.forEach(clearTimeout);
       knockTimersRef.current = [];
     }
