@@ -570,17 +570,18 @@ const playDoorSequence = async () => {
 
   // 只有進入 01_GR_1 時播放雨聲與三下敲門；離開時停止並清除待播放的敲門
   useEffect(() => {
-    if (currentView === 'doc_01_gr_1') {
-      startRain();
-      void playDoorSequence();
-   } else {
-  stopStoryAudio();
-}
-      knockTimersRef.current.forEach(clearTimeout);
-      knockTimersRef.current = [];
-    }
-  }, [currentView]);
+  if (currentView !== 'doc_01_gr_1') {
+    stopStoryAudio();
+    return;
+  }
 
+  startRain();
+  void playDoorSequence();
+
+  return () => {
+    stopStoryAudio();
+  };
+}, [currentView]);
   // README 逐字打出；Enter / Space 可直接完成。指令框在自身文字打完後才繪製。
   useEffect(() => {
     typewriterTimersRef.current.forEach(clearTimeout);
