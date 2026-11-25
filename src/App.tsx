@@ -1723,7 +1723,7 @@ const playDoorSequence = async () => {
       )}
 
       {/* VIEW 01_LUUU_4 */}
-      {currentView === 'doc_01_ev_3' && (
+      {currentView === 'doc_01_lu_4' && (
         <div 
           className="readme-page w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
           onClick={(e) => e.stopPropagation()}
