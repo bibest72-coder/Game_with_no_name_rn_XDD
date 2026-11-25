@@ -416,7 +416,7 @@ const stopStoryAudio = () => {
             
             const removeKnock = () => activeStorySoundsRef.current.delete(knock);
             knock.addEventListener('ended', removeKnock, { once: true });
-            knock.addEventListener('error',co removeKnock, { once: true });
+            knock.addEventListener('error',removeKnock, { once: true });
           knock.volume = originalKnock.volume;
           knock.currentTime = 0;
 
