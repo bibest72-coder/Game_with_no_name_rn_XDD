@@ -1884,6 +1884,67 @@ const playDoorSequence = async () => {
         </div>
       )}
 
+      {/* VIEW: 承諾的日期 (Promise Date) Letter View */}
+      {currentView === 'letter_promise_date' && (
+          <div
+            className="readme-page w-full max-w-2xl flex flex-col items-center pt-[10vh] pb-16 px-4 animate-fadeIn"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-full flex justify-start mb-4">
+              <button
+                type="button"
+                onClick={handleBack}
+                className={`px-3 py-1 text-xs sm:text-sm border-2 cursor-pointer font-bold tracking-wider uppercase transition-transform active:translate-y-0.5 ${
+                  isDark
+                    ? 'border-white hover:bg-white hover:text-black bg-black text-white'
+                    : 'border-black hover:bg-black hover:text-white bg-white text-black'
+                }`}
+                title="返回 (Esc)"
+              >
+                [ ◄ 返回 ]
+              </button>
+            </div>
+        
+            <div
+              className={`w-full border-2 p-6 sm:p-10 relative theme-transition ${
+                isDark ? 'border-white bg-black' : 'border-black bg-white'
+              }`}
+            >
+              <div className="flex items-center justify-between border-b pb-4 mb-6">
+                <span className="text-xl sm:text-2xl font-bold tracking-wider">
+                  承諾的日期 (Promise Date)
+                </span>
+              </div>
+
+               {/* VIEW: 承諾的日期 (Promise Date) 內容 */}
+            <div className="min-h-[220px] sm:min-h-[280px] font-mono text-left leading-8 text-xs sm:text-sm space-y-5">
+              <p>
+                <strong>1037591220 (UTC)</strong>
+              </p>
+            
+              <p>
+                這是我的出生日期，爸爸媽媽不知道還記不記得呢？明明他們說過會為我辦生日派對的...
+              </p>
+            
+              <p>
+                說起來也有趣，要不是以前有同學好奇問起，我根本從來不知道，原來「<strong>生日</strong>」這一天，大家竟然都是會特別慶祝呢！
+              </p>
+            
+              <p>
+                我的印象裡，那一向是個再平凡不過的日子。
+              </p>
+            
+              <p>
+                不過……沒關係啦！今年只要在這裡乖乖等他們來接我，就一定能補辦了對吧？
+              </p>
+            </div>
+        
+              <div className="readme-footer readme-footer-hidden pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
+                <span>END OF LETTER</span>
+              </div>
+            </div>
+          </div>
+        )}
       {/* VIEW: 尸米那誰喔 (Shiminaseo) Letter View */}
       {currentView === 'letter_shiminaseo' && (
         <div 
