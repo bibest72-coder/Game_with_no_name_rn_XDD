@@ -2164,7 +2164,7 @@ const playDoorSequence = async () => {
 
                 {/* 結尾 list 指令框框提示 (純文字 highlight 框框，無超連結) */}
                 <p className="pt-4 opacity-90">
-                  喔對了.... 可以使用 <code className={`font-bold px-1.5 py-0.5 border mx-0.5 inline-block ${isDark ? 'border-white text-white' : 'border-black text-black'}`}>list</code> 能看到有點過的路徑喔
+                  喔對了.... 可以使用 <code className={`font-bold px-1.5 py-0.5 border mx-0.5 inline-block ${isDark ? 'border-white text-white' : 'border-black text-black'}`}>list</code> 能看到有點過的文件喔
                 </p>
               </div>
             </div>
