@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-  base: '/Game_with_no_name_rn_XDD/',
+  base: '/K33p_1t_S1mpl3/',
   plugins: [react(), tailwindcss()],
   server: {
     port: 3000,
