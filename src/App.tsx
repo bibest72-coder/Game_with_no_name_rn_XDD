@@ -165,6 +165,7 @@ export default function App() {
     else if (currentView === 'doc_01_lu_4') recordLetterUnlock('01_lu_4');
     else if (currentView === 'doc_help_67') recordLetterUnlock('help_67');
     else if (currentView === 'letter_ridge_lodge') recordLetterUnlock('inspect_ri');
+    else if (currentView === 'letter_promise_date') recordLetterUnlock('inspect_pr');
     else if (currentView === 'letter_shiminaseo') recordLetterUnlock('inspect_sh');
   }, [currentView]);
 
