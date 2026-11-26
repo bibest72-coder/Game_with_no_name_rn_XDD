@@ -2139,38 +2139,41 @@ const playDoorSequence = async () => {
             <div className="space-y-6 w-full max-w-lg">
               {/* 1. Top Group: Other text commands (最頂端其他文字指令) */}
               {otherItems.length > 0 && (
-                <div className="space-y-2">
-                  <button
-                    type="button"
-                    onClick={() => toggleFolder('others')}
-                    className="flex items-center gap-2 text-sm sm:text-base font-bold tracking-wider cursor-pointer hover:opacity-80 transition-opacity"
-                  >
-                    <span className="w-3 text-center opacity-70">{collapsedFolders['others'] ? '▶' : '▼'}</span>
-                    <span>[ {getFolderDisplayName('others')} ]</span>
-                  </button>
-
-                  {!collapsedFolders['others'] && (
-                <div className={`pl-6 ml-1.5 border-l ${isDark ? 'border-white/20' : 'border-black/20'} space-y-1.5`}>
+               <div className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() => toggleFolder('others')}
+                  className="flex items-center gap-2 text-sm sm:text-base font-bold tracking-wider cursor-pointer hover:opacity-80 transition-opacity"
+                >
+                  <span className="w-3 text-center opacity-70">
+                    {collapsedFolders['others'] ? '▶' : '▼'}
+                  </span>
+                  <span>[ {getFolderDisplayName('others')} ]</span>
+                </button>
+                {!collapsedFolders['others'] && (
+                 <div className="pl-6 ml-1.5 space-y-1.5">
                    {otherItems.map(item => (
-                     <div key={item.id}>
-                      <button
-                         type="button"
-                        onClick={() => {
-                          setPreviousView('list');
-                          setCurrentView(item.view);
-                        }}
+                   <div key={item.id}>
+                     <button
+                       type="button"
+                       onClick={() => {
+                         setPreviousView('list');
+                         setCurrentView(item.view);
+                       }}
                        className={`cursor-pointer text-xs sm:text-sm tracking-wider transition-colors py-0.5 block text-left ${
-                         isDark ? 'text-white/90 hover:underline hover:text-white' : 'text-black/90 hover:underline hover:text-black'
+                         isDark
+                         ? 'text-white/90 hover:underline hover:text-white'
+                         : 'text-black/90 hover:underline hover:text-black'
                        }`}
                       >
-                         {item.cmd}
+                       {item.cmd}
                       </button>
+                    </div>
+                  ))}
+                  </div>
+                )}
                 </div>
-                 ))}
-                </div>
-                  )}
-                </div>
-              )}
+             )}
 
               {/* 2. Inspect Commands Group (調查物件專屬資料夾) */}
               {inspectItems.length > 0 && (
