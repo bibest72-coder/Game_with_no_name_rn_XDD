@@ -2188,7 +2188,7 @@ const playDoorSequence = async () => {
                   </button>
 
                   {!collapsedFolders['others'] && (
-                <div className={`pl-6 ml-1.5 border-l ${isDark ? 'border-white/20' : 'border-black/20'} space-y-1.5`}>
+                <div className="pl-6 ml-1.5 border-l border-gray-500/60 space-y-1.5">
                    {otherItems.map(item => (
                      <div key={item.id}>
                       <button
