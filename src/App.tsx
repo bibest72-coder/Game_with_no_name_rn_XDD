@@ -2188,7 +2188,9 @@ const playDoorSequence = async () => {
                   </button>
 
                   {!collapsedFolders['others'] && (
-               <div className="pl-6 ml-1.5 border-l border-gray-500/60 space-y-1.5">
+               <div className={`pl-6 ml-1.5 border-l space-y-1.5 ${
+  isDark ? 'border-white/60' : 'border-black/40'
+}`}>
                    {otherItems.map(item => (
                      <div key={item.id}>
                       <button
@@ -2223,7 +2225,9 @@ const playDoorSequence = async () => {
                   </button>
 
                   {!collapsedFolders['inspect'] && (
-                    <div className="pl-6 ml-1.5 border-l border-gray-500/60 space-y-1.5">
+                    <div className={`pl-6 ml-1.5 border-l space-y-1.5 ${
+  isDark ? 'border-white/60' : 'border-black/40'
+}`}>
                       {inspectItems.map(item => (
                         <div key={item.id}>
                           <button
@@ -2261,7 +2265,9 @@ const playDoorSequence = async () => {
                     </button>
 
                     {!isCollapsed && (
-                      <div className="pl-6 ml-1.5 border-l border-gray-500/60 space-y-1.5">
+                      <div className={`pl-6 ml-1.5 border-l space-y-1.5 ${
+  isDark ? 'border-white/60' : 'border-black/40'
+}`}>
                         {items.map(item => (
                           <div key={item.id}>
                             <button
