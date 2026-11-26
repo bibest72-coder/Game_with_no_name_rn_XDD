@@ -1755,10 +1755,48 @@ const playDoorSequence = async () => {
               <span className="text-xl sm:text-2xl font-bold tracking-wider">01_LU_4</span>
             </div>
 
-            {/* Letter Content Area (彩蛋內容區 - 目前留空供後續填寫) */}
-            <div className="min-h-[220px] sm:min-h-[280px] font-mono leading-relaxed text-xs sm:text-sm space-y-3.5">
-              {/* 請在此處放入您未來的彩蛋內容 */}
-            </div>
+            {/* Letter Content Area */}
+              <div className="min-h-[220px] sm:min-h-[280px] font-mono leading-relaxed text-xs sm:text-sm space-y-3.5">
+                <p>房間內傳來均勻的呼吸聲。</p>
+        
+                <p>
+                  Lumi 正在溫暖的床鋪裡睡得正香，但她明明是一個極度「認床」的人。
+                </p>
+        
+                <p>
+                  不知為何，這 205 號房間彷彿是專門為她量身打造的一樣，帶有一種說不出的熟悉與安心感。
+                </p>
+        
+                <p>
+                  不過，作為一個樂天派，Lumi 翻了個身，壓根沒想過去深究這些細節。
+                </p>
+        
+                <p>
+                  在她的世界裡，這一切一定是因為 Iris 女士太貼心、太了解客人的需求了！
+                </p>
+        
+                <p>
+                  現在的她什麼都不想煩惱，只管安安穩穩地在這裡住下去，直到父母來接她的那一天為止。
+                </p>
+        
+                <p>
+                  只是……她其實也不知道父母究竟什麼時候才會來。在她的記憶中，爸爸媽媽總是那麼忙碌，忙到似乎連{' '}
+                  <span
+                    onClick={() => {
+                      setPreviousView('doc_01_lu_4');
+                      setCurrentView('letter_promise_date');
+                    }}
+                    className={`inline-block font-bold cursor-pointer transition-colors underline decoration-dotted underline-offset-4 ${
+                      isDark
+                        ? 'text-[#fef08a] hover:text-[#fffbeb]'
+                        : 'text-[#854d0e] bg-[#fef9c3] px-1 border border-[#facc15]/60 hover:bg-[#fef08a]'
+                    }`}
+                  >
+                    承諾的日期 (<span className="italic">Promise Date</span>)
+                  </span>
+                  {' '}都變得模糊……
+                </p>
+              </div>
 
             {/* Bottom Letter Footer / Divider */}
             <div className="readme-footer readme-footer-hidden pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
