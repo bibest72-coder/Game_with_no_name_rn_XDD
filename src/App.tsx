@@ -1713,39 +1713,42 @@ const playDoorSequence = async () => {
             </div>
 
             {/* Letter Content Area */}
-            <div className="min-h-[220px] sm:min-h-[280px] font-mono leading-relaxed text-xs sm:text-sm space-y-3.5">
-              <p>
+           <div className="min-h-[220px] sm:min-h-[280px] font-mono text-left leading-relaxed text-xs sm:text-sm space-y-3.5">
+              <p className="pl-6 sm:pl-7">
                 在 <strong><em>Eve Florence</em></strong> 的記憶中，她已經在這間有些詭異的旅店待了兩天了。
               </p>
             
-              <p>
+              <p className="pl-6 sm:pl-7">
                 她是旅店主人 <strong><em>Iris</em></strong> 女士很久以前就重金預約的貴客。
               </p>
             
-              <p>
+              <p className="pl-6 sm:pl-7">
                 作為一名頂尖的「體驗式室內設計師」，<strong><em>Eve</em></strong> 的創作向來不看藍圖，而是習慣親自入住；而這一次，她正是被請來為這棟老舊旅店進行全面整修。
               </p>
             
-              <p>
+              <p className="pl-6 sm:pl-7">
                 此時，她正坐在桌前，一邊感受著空間的氛圍，一邊順手畫著旅店的室內空間草圖。突然間，她的肚子一陣劇烈絞痛。
               </p>
             
-              <p>
-                但建築實在太過古老，所有客房內部都沒有獨立衛浴。整棟旅店只有兩間公用廁所，一間設在一樓大廳（<strong><em>LRestroom</em></strong>），另一間則在三樓（<strong><em>TRestroom</em></strong>）。
+              <p className="pl-6 sm:pl-7">
+                但建築實在太過古老，所有客房內部都沒有獨立衛浴。整棟旅店只有兩間公用廁所，一間設在一樓大廳<strong>（<em>LRestroom</em>）</strong>，另一間則在三樓<strong>（<em>TRestroom</em>）</strong>。
               </p>
             
-              <p>
+              <p className="pl-6 sm:pl-7">
                 身處 <strong>204 號房</strong>的 <strong><em>Eve</em></strong> 痛得臉色發白。
               </p>
             
-              <p className="pt-1 font-bold">
-                <span className={isDark ? 'text-[#7dd3fc]' : 'text-[#1d4ed8]'}>
+              <div className="pt-1 flex items-start font-normal">
+                <span className={`shrink-0 ${isDark ? 'text-[#7dd3fc]' : 'text-[#1d4ed8]'}`}>
                   {name3}
                 </span>
-                ：「到底是哪個天才設計師？哪有旅店房間不設廁所的，這完全不符合人體工學和現代邏輯好嗎！等整修動工後，我絕對要叫 <strong><em>Iris</em></strong> 在每一個房間裡都加裝獨立衛浴！」
-              </p>
+                <span className="shrink-0">：</span>
+                <span className="flex-1">
+                  「到底是哪個天才設計師？哪有旅店房間不設廁所的，這完全不符合人體工學和現代邏輯好嗎！等整修動工後，我絕對要叫 <strong><em>Iris</em></strong> 在每一個房間裡都加裝獨立衛浴！」
+                </span>
+              </div>
             
-              <p>
+              <p className="pl-6 sm:pl-7">
                 她一邊揉著肚子，一邊急促地推開 <strong>204 號房</strong>門，快步朝著三樓的廁所趕去。
               </p>
             </div>
