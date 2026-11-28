@@ -1795,23 +1795,23 @@ const playDoorSequence = async () => {
             </div>
 
             {/* Letter Content Area */}
-              <div className="min-h-[220px] sm:min-h-[280px] font-mono leading-relaxed text-xs sm:text-sm space-y-3.5">
+<div className="min-h-[220px] sm:min-h-[280px] font-mono text-left leading-relaxed text-xs sm:text-sm space-y-3.5">
                 <p>房間內傳來均勻的呼吸聲。</p>
         
                 <p>
-                  Lumi 正在溫暖的床鋪裡睡得正香，但她明明是一個極度「認床」的人。
+                  <strong><em>Lumi</em></strong> 正在溫暖的床鋪裡睡得正香，但她明明是一個極度「認床」的人。
                 </p>
         
                 <p>
-                  不知為何，這 205 號房間彷彿是專門為她量身打造的一樣，帶有一種說不出的熟悉與安心感。
+                  不知為何，這 <strong>205 號房</strong>間彷彿是專門為她量身打造的一樣，帶有一種說不出的熟悉與安心感。
                 </p>
         
                 <p>
-                  不過，作為一個樂天派，Lumi 翻了個身，壓根沒想過去深究這些細節。
+                  不過，作為一個樂天派，<strong><em>Lumi</em></strong> 翻了個身，壓根沒想過去深究這些細節。
                 </p>
         
                 <p>
-                  在她的世界裡，這一切一定是因為 Iris 女士太貼心、太了解客人的需求了！
+                  在她的世界裡，這一切一定是因為 <strong><em>Iris</em></strong> 女士太貼心、太了解客人的需求了！
                 </p>
         
                 <p>
@@ -1836,7 +1836,7 @@ const playDoorSequence = async () => {
                   {' '}都變得模糊……
                 </p>
               </div>
-
+            
             {/* Bottom Letter Footer / Divider */}
             <div className="readme-footer readme-footer-hidden pt-6 border-t mt-6 flex justify-between items-center text-xs opacity-50">
               <span>END OF LETTER</span>
