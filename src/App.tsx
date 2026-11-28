@@ -1651,7 +1651,7 @@ const playDoorSequence = async () => {
               </p>
             
               {/* 音效 / 特殊標示 */}
-              <p className="pt-2 text-center tracking-widest">
+              <p className="pt-1 pl-4 sm:pl-6 opacity-90">
                 叩、叩、叩 ——
               </p>
             
